@@ -3,487 +3,636 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>2026학년도 1학기 물리학</title>
-  <meta name="description" content="2026학년도 1학기 물리학 수업 홈페이지" />
+  <title>2026학년도 전자기와 양자</title>
+
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)'], ['$', '$']],
+        displayMath: [['\\[', '\\]'], ['$$', '$$']]
+      },
+      svg: {
+        fontCache: 'global'
+      }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
   <style>
     :root{
-      --bg:#0b1220; --card:#0f1b33; --text:#eaf0ff; --muted:#b8c4e6;
-      --line:rgba(255,255,255,.12); --accent:#7aa7ff; --accent2:#7bffcf;
-      --warn:#ffcc66;
+      --bg:#f7fbff;
+      --surface:#ffffff;
+      --surface-soft:#eef8ff;
+      --text:#16324f;
+      --muted:#60758c;
+      --line:#d9eaf5;
+      --blue:#2389da;
+      --blue-dark:#1269b0;
+      --cyan:#52c7d9;
+      --yellow:#ffd166;
+      --shadow:0 18px 50px rgba(39,104,145,.14);
     }
     *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
     body{
-      margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      background: radial-gradient(900px 500px at 20% 0%, rgba(122,167,255,.28), transparent),
-                  radial-gradient(700px 450px at 80% 20%, rgba(123,255,207,.18), transparent),
-                  var(--bg);
+      margin:0;
+      font-family:'Pretendard','Noto Sans KR',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+      font-size:18px;
+      line-height:1.65;
       color:var(--text);
+      background:
+        radial-gradient(circle at 8% 8%, rgba(255,209,102,.34), transparent 24rem),
+        radial-gradient(circle at 92% 15%, rgba(82,199,217,.24), transparent 28rem),
+        linear-gradient(180deg,#fafdff 0%,#f4fbff 50%,#fffdf7 100%);
+      min-height:100vh;
     }
-    a{color:inherit; text-decoration:none}
-    .wrap{max-width:1040px; margin:0 auto; padding:28px 18px 60px}
+    a{color:inherit}
+    button,input{font:inherit}
+    .wrap{max-width:1100px;margin:0 auto;padding:22px 20px 64px}
+
     header{
-      display:flex; align-items:center; justify-content:space-between; gap:16px;
-      padding:14px 0 18px; border-bottom:1px solid var(--line);
-      position:sticky; top:0; backdrop-filter: blur(10px);
-      background: linear-gradient(to bottom, rgba(11,18,32,.92), rgba(11,18,32,.65));
-      z-index:10;
+      display:flex;align-items:center;justify-content:space-between;gap:18px;
+      padding:12px 0 22px;margin-bottom:24px;
     }
-    .brand{display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.2px}
-    .dot{width:10px; height:10px; border-radius:999px; background:linear-gradient(135deg,var(--accent),var(--accent2))}
-    nav{display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; align-items:center}
-    nav a, nav button{
-      padding:8px 10px; border:1px solid transparent; border-radius:10px;
-      color:var(--muted); background:transparent; font:inherit; cursor:pointer;
+    .brand{display:flex;align-items:center;gap:12px;font-weight:900;letter-spacing:-.03em}
+    .brand-mark{
+      width:44px;height:44px;border-radius:15px;display:grid;place-items:center;
+      background:linear-gradient(135deg,var(--yellow),#fff1ad);
+      box-shadow:0 10px 25px rgba(255,190,57,.28);font-size:23px
     }
-    nav a:hover, nav button:hover{border-color:var(--line); color:var(--text)}
+    nav{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+    nav a{
+      padding:11px 16px;border-radius:999px;text-decoration:none;font-weight:800;font-size:.92rem;
+      background:rgba(255,255,255,.82);border:1px solid var(--line);
+      box-shadow:0 8px 22px rgba(38,112,158,.08);transition:.2s
+    }
+    nav a:hover{transform:translateY(-2px);border-color:#9ed5ef}
+    nav .seat-link{background:var(--text);color:white;border-color:var(--text)}
+    nav .sim-link{
+      background:linear-gradient(135deg,var(--blue),var(--cyan));
+      color:white;border:none;box-shadow:0 12px 26px rgba(35,137,218,.25)
+    }
 
-    /* Dropdown */
-    .dd{position:relative}
-    .dd-menu{
-      display:none;
-      position:absolute; right:0; top:42px;
-      min-width:220px;
-      border:1px solid var(--line); border-radius:14px;
-      background:rgba(15,27,51,.96);
-      box-shadow: 0 18px 55px rgba(0,0,0,.38);
-      padding:8px;
+    .hero-banner{
+      position:relative;overflow:hidden;background:rgba(255,255,255,.8);
+      border:1px solid rgba(190,224,240,.8);border-radius:34px;padding:30px;
+      box-shadow:var(--shadow);margin-bottom:28px
     }
-    .dd-menu a{
-      display:flex; justify-content:space-between; align-items:center;
-      padding:10px 10px; border-radius:12px; border:1px solid transparent;
-      color:var(--text);
+    .main-title-banner{text-align:center}
+    .main-title-banner img{
+      width:100%;max-width:780px;height:auto;display:block;margin:0 auto;
+      filter:drop-shadow(0 16px 22px rgba(34,104,150,.12))
     }
-    .dd-menu a:hover{border-color:var(--line); background:rgba(255,255,255,.04)}
-    .dd-menu small{color:var(--muted)}
-    .dd.open .dd-menu{display:block}
 
-    .hero{padding:26px 0 12px; display:grid; grid-template-columns:1.2fr .8fr; gap:14px}
-    @media (max-width:860px){ .hero{grid-template-columns:1fr} }
+    .clock-container{text-align:center;margin:30px 0 34px}
+    .clock-date{font-size:1.15rem;color:var(--blue-dark);font-weight:800;margin-bottom:4px}
+    .clock-time{
+      font-size:4.35rem;font-weight:900;line-height:1;letter-spacing:-.06em;
+      font-variant-numeric:tabular-nums;color:var(--text)
+    }
 
+    .hero{display:grid;gap:24px}
     .card{
-      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
-      border:1px solid var(--line); border-radius:18px; padding:18px;
-      box-shadow: 0 18px 55px rgba(0,0,0,.32);
+      background:rgba(255,255,255,.92);border:1px solid var(--line);
+      border-radius:26px;padding:28px;box-shadow:var(--shadow)
     }
-    h1{margin:0 0 8px; font-size:30px; line-height:1.2}
-    h2{margin:0 0 10px; font-size:18px}
-    p{margin:0; color:var(--muted); line-height:1.6}
-    .pill{
-      display:inline-flex; align-items:center; gap:8px;
-      padding:8px 12px; border-radius:999px; border:1px solid var(--line);
-      color:var(--muted); font-size:14px; margin-bottom:12px;
+    .card-title-row{
+      display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:18px
     }
-    .btns{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px}
+    h2{margin:0;font-size:1.42rem;letter-spacing:-.025em;display:flex;align-items:center;gap:10px}
+    h3{margin:0 0 10px;font-size:1.08rem}
+    p{margin:0;color:var(--muted)}
+
     .btn{
-      padding:10px 14px; border-radius:12px; border:1px solid var(--line);
-      background:rgba(255,255,255,.04); color:var(--text); font-weight:700;
-      cursor:pointer;
-      display:inline-block;
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;
+      padding:14px 18px;border-radius:15px;border:1px solid var(--line);
+      background:white;color:var(--text);font-weight:850;text-decoration:none;cursor:pointer;transition:.2s
     }
-    .btn.primary{
-      border-color:transparent;
-      background: linear-gradient(135deg, rgba(122,167,255,.95), rgba(123,255,207,.85));
-      color:#07101f;
+    .btn:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(31,112,160,.13)}
+    .btn-seating{
+      width:100%;background:linear-gradient(135deg,#263f5f,#162d48);
+      color:white;border:none;font-size:1.05rem;box-shadow:0 12px 28px rgba(22,50,79,.22)
     }
-    .btn.warn{
-      border-color: rgba(255,204,102,.35);
-      background: rgba(255,204,102,.12);
-      color: var(--text);
-    }
-    .btn:hover{transform: translateY(-1px)}
 
-    .grid{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:12px}
-    @media (max-width:980px){ .grid{grid-template-columns:repeat(2,1fr)} }
-    @media (max-width:560px){ .grid{grid-template-columns:1fr} }
-    .item{padding:14px; border-radius:16px; border:1px solid var(--line); background:rgba(0,0,0,.08)}
-    .item b{display:block; margin-bottom:6px}
-    .item a{display:inline-flex; margin-top:10px}
-
-    .section{margin-top:14px}
-    .hint{margin-top:10px; font-size:13px; color:var(--muted)}
-    code{background:rgba(255,255,255,.06); border:1px solid var(--line); padding:2px 6px; border-radius:8px}
-
-    /* 공지 게시판 */
-    .noticeTop{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap}
-    .badge{
-      display:inline-flex; align-items:center; gap:6px;
-      padding:6px 10px; border-radius:999px; border:1px solid var(--line);
-      font-size:12px; color:var(--muted);
+    .classroom-intro{
+      background:linear-gradient(135deg,#eff9ff,#f5fffb);
+      border:1px solid #cdeaf4;padding:22px;border-radius:20px;margin-bottom:20px
     }
-    .postList{display:grid; gap:10px; margin-top:12px}
+    .classGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+    .class-btn{
+      position:relative;overflow:hidden;padding:20px;border:1px solid var(--line);
+      border-radius:19px;background:white;text-align:left;cursor:pointer;transition:.22s;
+      box-shadow:0 8px 20px rgba(32,110,155,.07)
+    }
+    .class-btn::after{
+      content:"↗";position:absolute;right:18px;top:18px;font-weight:900;color:var(--blue)
+    }
+    .class-btn:hover{
+      transform:translateY(-3px);border-color:#9cd8ee;box-shadow:0 15px 30px rgba(32,110,155,.13)
+    }
+    .class-btn b{display:block;font-size:1.16rem;color:var(--text);margin-bottom:4px}
+    .class-btn small{color:var(--muted);font-weight:700}
+    .class-btn.unset{background:linear-gradient(145deg,#fff,#f8fcff)}
+    .class-btn.unset::before{
+      content:"링크 입력 대기";display:inline-block;margin-top:12px;padding:5px 9px;
+      border-radius:999px;background:#fff4d4;color:#926700;font-size:.72rem;font-weight:900
+    }
+
+    .postList{display:flex;flex-direction:column;gap:12px}
     .post{
-      border:1px solid var(--line); border-radius:14px; padding:12px 12px 10px;
-      background: rgba(0,0,0,.08);
+      display:flex;gap:14px;padding:17px;background:#f8fcff;border:1px solid #e1eff6;border-radius:17px
     }
-    .postHead{display:flex; align-items:flex-start; justify-content:space-between; gap:10px}
-    .postTitle{font-weight:800}
-    .postMeta{color:var(--muted); font-size:12px; white-space:nowrap}
-    .postBody{margin-top:8px; color:var(--text); line-height:1.6; white-space:pre-wrap}
-    .adminPanel{
-      display:none;
-      margin-top:12px;
-      border:1px dashed rgba(255,204,102,.45);
-      border-radius:14px;
-      padding:12px;
-      background: rgba(255,204,102,.08);
+    .post-num{
+      flex:0 0 34px;width:34px;height:34px;border-radius:12px;display:grid;place-items:center;
+      background:var(--yellow);color:#6f5100;font-weight:900;font-size:.86rem
     }
-    .adminPanel label{display:block; font-size:13px; color:var(--muted); margin:8px 0 6px}
-    .adminPanel input, .adminPanel textarea{
-      width:100%;
-      border:1px solid var(--line);
-      border-radius:12px;
-      padding:10px 10px;
-      background: rgba(15,27,51,.65);
-      color: var(--text);
-      font: inherit;
-      outline: none;
-    }
-    .adminPanel textarea{min-height:110px; resize:vertical}
-    .adminPanel .row{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px}
+    .post-content{flex:1;min-width:0}
+    .post-head{display:flex;justify-content:space-between;gap:12px;margin-bottom:5px}
+    .post-title{font-weight:900;color:var(--text)}
+    .post-date{font-size:.82rem;color:var(--muted);white-space:nowrap}
+    .post-body{font-size:.95rem;color:var(--muted);white-space:pre-wrap}
 
-    footer{margin-top:26px; padding-top:16px; border-top:1px solid var(--line); color:var(--muted); font-size:13px}
+    .seat-card{background:linear-gradient(135deg,#f6fbff,#fffaf0)}
+    .seat-card-inner{display:grid;grid-template-columns:1fr auto;align-items:center;gap:22px}
+    .seat-icon{
+      width:92px;height:92px;border-radius:25px;display:grid;place-items:center;
+      background:linear-gradient(135deg,var(--yellow),#ffec9a);font-size:42px;
+      box-shadow:0 14px 28px rgba(245,180,54,.2)
+    }
+
+    .toast{
+      position:fixed;left:50%;bottom:28px;transform:translate(-50%,30px);
+      background:#16324f;color:#fff;padding:13px 22px;border-radius:999px;opacity:0;
+      pointer-events:none;transition:.25s;z-index:9999;font-weight:800;
+      box-shadow:0 12px 35px rgba(0,0,0,.2)
+    }
+    .toast.show{opacity:1;transform:translate(-50%,0)}
+
+    .agent-fab{
+      position:fixed;right:24px;bottom:24px;width:80px;height:80px;border:none;border-radius:50%;
+      background:linear-gradient(135deg,#10263d,#1f4d78);color:#fff;font-size:34px;font-weight:900;
+      box-shadow:0 18px 35px rgba(16,38,61,.35);cursor:pointer;z-index:10000;transition:.2s
+    }
+    .agent-fab:hover{transform:translateY(-2px)}
+
+    .agent-panel{
+      position:fixed;top:0;right:-430px;width:410px;max-width:95vw;height:100vh;background:#16324f;
+      box-shadow:-18px 0 50px rgba(9,24,39,.32);z-index:10001;transition:right .28s ease;
+      display:flex;flex-direction:column;border-left:1px solid #2f5274
+    }
+    .agent-panel.open{right:0}
+
+    .agent-header{
+      display:flex;justify-content:space-between;align-items:flex-start;gap:14px;
+      padding:18px 18px 14px;border-bottom:1px solid #2f5274;background:#10263d
+    }
+
+    .agent-title-badge{
+      display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border-radius:999px;
+      background:rgba(255,255,255,.12);color:#ffffff;font-size:.82rem;font-weight:900;
+      letter-spacing:-.01em;margin-bottom:8px;
+    }
+
+    .agent-title{font-size:1rem;font-weight:900;color:#ffffff}
+    .agent-sub{font-size:.78rem;color:#bcd0e4;margin-top:4px}
+
+    .agent-header-actions{display:flex;align-items:center;gap:8px}
+    .agent-pdf-btn{
+      border:none;background:#2a78b8;color:#fff;min-width:52px;height:38px;
+      border-radius:12px;font-weight:900;cursor:pointer;
+    }
+    .agent-close{
+      border:none;background:rgba(255,255,255,.1);color:#fff;width:38px;height:38px;
+      border-radius:12px;box-shadow:none;cursor:pointer
+    }
+
+    .agent-messages{
+      flex:1;overflow-y:auto;padding:16px;background:linear-gradient(180deg,#16324f 0%,#1b3b5c 100%);
+      display:flex;flex-direction:column;gap:12px
+    }
+
+    .agent-msg{
+      max-width:92%;
+      padding:11px 13px;
+      border-radius:18px;
+      line-height:1.5;
+      white-space:normal;
+      box-shadow:0 8px 20px rgba(8,22,36,.18);
+      font-size:14px;
+      overflow-x:auto;
+      overflow-y:hidden;
+    }
+
+    .agent-msg.bot{
+      background:#f4f9ff;
+      border:1px solid #d7e6f5;
+      color:#16324f;
+      align-self:flex-start
+    }
+
+    .agent-msg.user{
+      background:linear-gradient(135deg,#2a78b8,#52c7d9);
+      color:#fff;
+      align-self:flex-end
+    }
+
+    .agent-msg p{margin:0 0 10px;color:inherit}
+    .agent-msg p:last-child{margin-bottom:0}
+
+    .agent-msg mjx-container{
+      margin:.35em 0 !important;
+      max-width:none !important;
+    }
+
+    .agent-msg mjx-container[display="true"]{
+      display:block;
+      overflow-x:auto;
+      overflow-y:hidden;
+      padding-bottom:4px;
+    }
+
+    .agent-msg svg{
+      max-width:none !important;
+      height:auto !important;
+    }
+
+    .agent-msg pre{
+      background:#0f2236;color:#eef6ff;padding:12px 14px;border-radius:12px;
+      overflow:auto;font-size:.84rem;line-height:1.5;
+    }
+
+    .agent-msg code{
+      font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+    }
+
+    .agent-quick{
+      display:flex;gap:8px;flex-wrap:wrap;padding:14px 16px 10px;background:#16324f;border-top:1px solid #2f5274
+    }
+    .quick-btn{
+      border:1px solid #426787;background:#224261;color:#eef6ff;padding:8px 11px;
+      border-radius:999px;font-size:.78rem;font-weight:800;cursor:pointer
+    }
+
+    .agent-input{
+      display:flex;gap:10px;padding:12px 16px 18px;background:#10263d;border-top:1px solid #2f5274
+    }
+    .agent-input input{
+      flex:1;min-height:48px;border:1px solid #426787;border-radius:15px;padding:0 14px;
+      background:#183552;color:#eef6ff;font-size:14px;
+    }
+    .agent-input input::placeholder{color:#a9bfd4}
+    .agent-input button{
+      border:none;border-radius:15px;background:linear-gradient(135deg,#2a78b8,#52c7d9);
+      color:#fff;font-weight:900;padding:0 16px;min-width:74px;cursor:pointer;font-size:14px;
+    }
+
+    footer{margin-top:52px;text-align:center;color:var(--muted);font-size:.84rem}
+
+    @media(max-width:720px){
+      body{font-size:17px}
+      .wrap{padding:14px 14px 48px}
+      header{align-items:flex-start;flex-direction:column}
+      .brand{width:100%}
+      nav{width:100%;justify-content:flex-start}
+      nav a{flex:1;text-align:center;padding:10px 12px}
+      .hero-banner{padding:20px 14px;border-radius:25px}
+      .clock-time{font-size:3.25rem}
+      .classGrid{grid-template-columns:1fr}
+      .card{padding:21px;border-radius:22px}
+      .seat-card-inner{grid-template-columns:1fr}
+      .seat-icon{display:none}
+      .post-head{flex-direction:column;gap:2px}
+      .post-date{white-space:normal}
+      .agent-panel{width:100%;max-width:100%;right:-100%}
+      .agent-fab{right:18px;bottom:18px;width:68px;height:68px;font-size:30px}
+      .agent-msg{max-width:96%}
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
     <header>
-      <div class="brand">
-        <span class="dot" aria-hidden="true"></span>
-        <span>2026학년도 1학기 물리학</span>
-      </div>
-
-      <nav aria-label="메인 메뉴">
-        <a href="#notice">공지사항</a>
-
-        <div class="dd" id="classDD">
-          <button type="button" id="classBtn" aria-haspopup="true" aria-expanded="false">분반 ▾</button>
-          <div class="dd-menu" role="menu" aria-label="분반 메뉴">
-            <!-- TODO(링크 수정): 아래 href에 실제 분반 접속 링크를 넣으세요 -->
-            <a role="menuitem" href="https://example.com/physics-A" target="_blank" rel="noreferrer">
-              <span>물리학 A</span><small>링크</small>
-            </a>
-            <a role="menuitem" href="https://example.com/physics-C" target="_blank" rel="noreferrer">
-              <span>물리학 C</span><small>링크</small>
-            </a>
-            <a role="menuitem" href="https://example.com/physics-D" target="_blank" rel="noreferrer">
-              <span>물리학 D</span><small>링크</small>
-            </a>
-            <a role="menuitem" href="https://example.com/physics-E" target="_blank" rel="noreferrer">
-              <span>물리학 E</span><small>링크</small>
-            </a>
-          </div>
-        </div>
-
-        <!-- TODO(링크 수정): 좌석 배치 시스템 URL을 실제 주소로 바꾸세요 -->
-        <a href="https://example.com/seating" target="_blank" rel="noreferrer">좌석 배치 시스템</a>
+      <div class="brand"><span class="brand-mark">⚛️</span><span>2026학년도 전자기와 양자</span></div>
+      <nav>
+        <a href="#classroom">구글 클래스룸</a>
+        <a href="https://d38cbyzokrtur2.cloudfront.net" target="_blank" rel="noopener noreferrer" class="sim-link">시뮬레이션</a>
+        <a href="seating_system.html" target="_blank" class="seat-link">좌석 배치 시스템 →</a>
       </nav>
     </header>
 
     <main>
+      <section class="hero-banner">
+        <div class="main-title-banner">
+          <img src="111.png" alt="2026학년도 2학기 동북고등학교 전자기와 양자">
+        </div>
+      </section>
+
+      <div class="clock-container">
+        <div class="clock-date" id="clockDate"></div>
+        <div class="clock-time" id="clockTime">00:00:00</div>
+      </div>
+
       <section class="hero">
         <div class="card">
-          <div class="pill">📌 수업 안내 · 분반 접속 · 좌석 배치</div>
-          <h1>2026학년도 1학기 물리학</h1>
-          <p>
-            상단 메뉴에서 공지사항을 확인하고, 분반(A/C/D/E) 링크로 접속하세요.
-            좌석 배치 시스템은 외부 링크로 연결됩니다.
-          </p>
-          <div class="hint">
-            링크 수정 위치: <code>href="https://example.com/..."</code> 부분만 실제 주소로 바꾸면 됩니다.
+          <div class="card-title-row">
+            <h2>📢 공지사항</h2>
+            <button class="btn" id="refreshNoticeBtn">새로고침</button>
+          </div>
+          <div class="postList" id="postList">
+            <div style="padding:20px;text-align:center;color:var(--muted)">공지사항을 불러오는 중...</div>
           </div>
         </div>
 
-        <div class="card" id="notice">
-          <div class="noticeTop">
-            <h2 style="margin:0">공지사항</h2>
-            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap">
-              <span class="badge" id="adminBadge">학생 보기</span>
-              <button class="btn warn" type="button" id="adminBtn">교사용 편집</button>
-            </div>
+        <div class="card" id="classroom">
+          <div class="card-title-row"><h2>🎓 구글 클래스룸 이동반 접속</h2></div>
+          <div class="classroom-intro"><h3>이동반을 선택하세요.</h3></div>
+          <div class="classGrid">
+            <button class="class-btn unset" data-class="A"><b>전자기와 양자 A반</b><small>월요일 2교시 / 수요일 5교시 / 목요일 1교시</small></button>
+            <button class="class-btn unset" data-class="C"><b>전자기와 양자 C반</b><small>화요일 3교시 / 수요일 1교시 / 금요일 4교시</small></button>
+            <button class="class-btn unset" data-class="D"><b>전자기와 양자 D반</b><small>월요일 5교시 / 수요일 2교시 / 목요일 5교시</small></button>
+            <button class="class-btn unset" data-class="E"><b>전자기와 양자 E반</b><small>월요일 6교시 / 화요일 2교시 / 목요일 2교시</small></button>
           </div>
+        </div>
 
-          <p style="margin-top:8px">
-            공지사항은 <b>교사용 편집 모드</b>에서만 추가/삭제할 수 있습니다.
-            학생은 목록만 읽을 수 있습니다.
-          </p>
-
-          <div class="adminPanel" id="adminPanel">
-            <div class="hint" style="margin-top:0">
-              <!--
-                TODO(필수): 아래 스크립트의 ADMIN_PASSCODE 값을 교사만 아는 값으로 바꾸세요.
-                ※ 저장은 브라우저의 localStorage에 되므로, 교사용 PC/계정에서 작성하면 그 환경에 저장됩니다.
-              -->
-              ⚠️ 편집 내용은 이 브라우저(기기)에 저장됩니다. 여러 기기에서 동일하게 보이게 하려면
-              구글 사이트/노션/게시판 서비스 등 외부 시스템이 필요합니다.
+        <div class="card seat-card">
+          <div class="seat-card-inner">
+            <div>
+              <h2>🪑 좌석 배치 시스템</h2>
+              <p style="margin:10px 0 20px">원하는 좌석을 클릭하면 게임이 시작됩니다.</p>
+              <a class="btn btn-seating" href="seating_system.html" target="_blank">좌석 배치 시스템 열기</a>
             </div>
-
-            <label for="postTitle">제목</label>
-            <input id="postTitle" type="text" placeholder="예: 수행평가 안내 / 준비물 / 보강 일정" />
-
-            <label for="postBody">내용</label>
-            <textarea id="postBody" placeholder="공지 내용을 입력하세요."></textarea>
-
-            <div class="row">
-              <button class="btn primary" type="button" id="addPostBtn">공지 추가</button>
-              <button class="btn" type="button" id="logoutBtn">편집 종료</button>
-              <button class="btn" type="button" id="clearAllBtn" title="공지 전체 삭제(주의)">전체 삭제</button>
-            </div>
-          </div>
-
-          <div class="postList" id="postList" aria-live="polite"></div>
-
-          <div class="btns">
-            <button class="btn primary" type="button" onclick="window.scrollTo({top:0, behavior:'smooth'})">맨 위로</button>
+            <div class="seat-icon">🧑‍🔬</div>
           </div>
         </div>
       </section>
 
-      <section class="card section" id="classes">
-        <h2>분반 접속</h2>
-        <p>아래 카드의 버튼 링크를 각각 실제 주소로 바꾸어 사용하세요.</p>
-
-        <div class="grid">
-          <div class="item">
-            <b>물리학 A</b>
-            <p>분반 접속 링크</p>
-            <!-- TODO(링크 수정) -->
-            <a class="btn" href="https://example.com/physics-A" target="_blank" rel="noreferrer">A 접속</a>
-          </div>
-
-          <div class="item">
-            <b>물리학 C</b>
-            <p>분반 접속 링크</p>
-            <!-- TODO(링크 수정) -->
-            <a class="btn" href="https://example.com/physics-C" target="_blank" rel="noreferrer">C 접속</a>
-          </div>
-
-          <div class="item">
-            <b>물리학 D</b>
-            <p>분반 접속 링크</p>
-            <!-- TODO(링크 수정) -->
-            <a class="btn" href="https://example.com/physics-D" target="_blank" rel="noreferrer">D 접속</a>
-          </div>
-
-          <div class="item">
-            <b>물리학 E</b>
-            <p>분반 접속 링크</p>
-            <!-- TODO(링크 수정) -->
-            <a class="btn" href="https://example.com/physics-E" target="_blank" rel="noreferrer">E 접속</a>
-          </div>
-        </div>
-
-        <div class="hint">
-          ※ 상단 “분반” 드롭다운의 링크도 동일하게 바꿔 주세요. (원하는 경우 A/C/D/E를 서로 다른 사이트로 연결 가능)
-        </div>
-      </section>
-
-      <section class="card section" id="seating">
-        <h2>좌석 배치 시스템</h2>
-        <p>
-          아래 버튼을 누르면 좌석 배치 시스템(외부 사이트)으로 이동합니다.
-        </p>
-        <div class="btns">
-          <!-- TODO(링크 수정) -->
-          <a class="btn primary" href="https://example.com/seating" target="_blank" rel="noreferrer">좌석 배치 시스템 열기</a>
-        </div>
-        <div class="hint">
-          링크 수정: 상단 메뉴와 이 버튼의 <code>https://example.com/seating</code> 을 실제 좌석 배치 사이트로 바꾸세요.
-        </div>
-      </section>
-
-      <footer>
-        © <span id="year"></span> 변재윤
-      </footer>
+      <footer>© <span id="year"></span> 변재윤. All rights reserved.</footer>
     </main>
   </div>
 
+  <div class="toast" id="toast">알림</div>
+
+  <button id="agentFab" class="agent-fab" aria-label="학습 도우미 열기">🤖</button>
+
+  <aside id="agentPanel" class="agent-panel" aria-hidden="true">
+    <div class="agent-header">
+      <div>
+        <div class="agent-title-badge">학습도우미</div>
+        <div class="agent-title">전자기와 양자 AI 튜터</div>
+        <div class="agent-sub">개념 설명 · 문제 힌트 · 오답 피드백 · LaTeX 수식 표시</div>
+      </div>
+      <div class="agent-header-actions">
+        <button id="downloadPdfBtn" class="agent-pdf-btn" aria-label="대화 PDF 저장">PDF</button>
+        <button id="agentClose" class="agent-close" aria-label="학습 도우미 닫기">✕</button>
+      </div>
+    </div>
+
+    <div id="agentMessages" class="agent-messages">
+      <div class="agent-msg bot"><p>안녕하세요. 전자기와 양자 학습도우미입니다.<br>개념 설명, 문제 풀이 힌트, 오답 분석을 도와드릴게요.<br><br>수식은 예를 들어 \( F = ma \), \[ v = v_0 + at \] 처럼 표시할 수 있습니다.</p></div>
+    </div>
+
+    <div class="agent-quick">
+      <button class="quick-btn" data-prompt="전자기 유도 핵심 개념을 수식과 함께 설명해줘">개념 설명</button>
+      <button class="quick-btn" data-prompt="이 단원에서 자주 하는 실수를 수식과 함께 알려줘">오답 피드백</button>
+      <button class="quick-btn" data-prompt="서술형 문제 2개를 만들고 풀이에 필요한 수식도 LaTeX로 보여줘">문항 생성</button>
+    </div>
+
+    <form id="agentForm" class="agent-input">
+      <input id="agentText" type="text" placeholder="질문을 입력하세요" />
+      <button type="submit">전송</button>
+    </form>
+  </aside>
+
   <script>
-    // =========================
-    // (1) 기본 설정
-    // =========================
+    const CLASSROOM_LINKS = {
+      A: "https://classroom.google.com/c/ODcxNDk5NzA5NTAy?cjc=oocv7uap",
+      C: "https://classroom.google.com/c/ODcxNTU4ODE2NTM5?cjc=pzh3kf5z",
+      D: "https://classroom.google.com/c/ODU1NzM3MzIzNTQ4?cjc=ycfmehba",
+      E: "https://classroom.google.com/c/ODcxNTYwMDI3MDgx?cjc=exvyj32t"
+    };
+
+    function updateClock(){
+      const now = new Date();
+      document.getElementById('clockDate').textContent =
+        now.toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric',weekday:'long'});
+      document.getElementById('clockTime').textContent =
+        now.toLocaleTimeString('ko-KR',{hour12:false});
+    }
+    setInterval(updateClock,1000);
+    updateClock();
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    // TODO(필수): 교사만 아는 비밀번호로 바꾸세요 (예: 'physics2026!@#')
-    // - 이 값은 파일 안에 그대로 들어가므로, 완전한 보안이 필요한 경우에는 "서버 로그인"이 있는 게시판/구글사이트 등을 권장합니다.
-    const ADMIN_PASSCODE = "CHANGE_ME";
-
-    const LS_KEY_POSTS = "physics_2026_notice_posts_v1";
-    const LS_KEY_ADMIN = "physics_2026_notice_admin_v1";
-
-    // =========================
-    // (2) 분반 드롭다운
-    // =========================
-    const dd = document.getElementById('classDD');
-    const btn = document.getElementById('classBtn');
-    function openDD(){ dd.classList.add('open'); btn.setAttribute('aria-expanded','true'); }
-    function closeDD(){ dd.classList.remove('open'); btn.setAttribute('aria-expanded','false'); }
-    btn.addEventListener('click', (e)=>{ e.stopPropagation(); dd.classList.contains('open') ? closeDD() : openDD(); });
-    document.addEventListener('click', ()=> closeDD());
-    window.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeDD(); });
-
-    // =========================
-    // (3) 공지사항 "교사용 게시판" (로컬 저장)
-    // =========================
-    const adminBtn = document.getElementById('adminBtn');
-    const adminPanel = document.getElementById('adminPanel');
-    const adminBadge = document.getElementById('adminBadge');
-    const addPostBtn = document.getElementById('addPostBtn');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const clearAllBtn = document.getElementById('clearAllBtn');
-    const postTitleEl = document.getElementById('postTitle');
-    const postBodyEl = document.getElementById('postBody');
-    const postListEl = document.getElementById('postList');
-
-    function nowLocal(){
-      const d = new Date();
-      const yyyy = d.getFullYear();
-      const mm = String(d.getMonth()+1).padStart(2,'0');
-      const dd = String(d.getDate()).padStart(2,'0');
-      const hh = String(d.getHours()).padStart(2,'0');
-      const mi = String(d.getMinutes()).padStart(2,'0');
-      return `${yyyy}-${mm}-${dd} ${hh}:${mi}`;
-    }
-
-    function loadPosts(){
+    const NOTICE_API="https://script.google.com/macros/s/AKfycbxy2fOj6JJWrRHEvv686yNjYNvKup5ArN5dFGZZVBmQFZ7GzB76ylKTxn39se-fdXDQ/exec";
+    async function loadNotices(){
+      const list=document.getElementById('postList');
       try{
-        const raw = localStorage.getItem(LS_KEY_POSTS);
-        if(!raw) return [];
-        const posts = JSON.parse(raw);
-        return Array.isArray(posts) ? posts : [];
-      }catch(_){ return []; }
-    }
-
-    function savePosts(posts){
-      localStorage.setItem(LS_KEY_POSTS, JSON.stringify(posts));
-    }
-
-    function escapeHtml(s){
-      return String(s)
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
-    }
-
-    function isAdmin(){
-      return localStorage.getItem(LS_KEY_ADMIN) === "1";
-    }
-
-    function renderPosts(){
-      const posts = loadPosts();
-      if(posts.length === 0){
-        postListEl.innerHTML = `
+        const res=await fetch(NOTICE_API);
+        const data=await res.json();
+        const items=data.items||[];
+        if(!items.length){
+          list.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted)">공지사항이 없습니다.</div>';
+          return;
+        }
+        list.innerHTML=items.map((it,idx)=>`
           <div class="post">
-            <div class="postHead">
-              <div class="postTitle">아직 등록된 공지가 없습니다.</div>
-              <div class="postMeta">${nowLocal()}</div>
-            </div>
-            <div class="postBody" style="color: var(--muted);">교사용 편집 모드에서 공지를 추가할 수 있습니다.</div>
-          </div>
-        `;
-        return;
-      }
-
-      const sorted = [...posts].sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
-
-      postListEl.innerHTML = sorted.map(p => {
-        const title = escapeHtml(p.title || "(제목 없음)");
-        const body = escapeHtml(p.body || "");
-        const meta = escapeHtml(p.meta || "");
-        const id = escapeHtml(p.id || "");
-        const delBtn = isAdmin() ? `<button class="btn" type="button" data-del="${id}" style="padding:6px 10px">삭제</button>` : "";
-        return `
-          <div class="post">
-            <div class="postHead">
-              <div>
-                <div class="postTitle">${title}</div>
-                <div class="postMeta">${meta}</div>
+            <div class="post-num">${items.length-idx}</div>
+            <div class="post-content">
+              <div class="post-head">
+                <span class="post-title">${it.title}</span>
+                <span class="post-date">${it.date}</span>
               </div>
-              <div>${delBtn}</div>
+              <div class="post-body">${it.content}</div>
             </div>
-            <div class="postBody">${body}</div>
           </div>
-        `;
-      }).join("");
+        `).join('');
+      }catch(e){
+        list.innerHTML='<div style="padding:20px;text-align:center;color:#c84a40">공지를 불러오지 못했습니다.</div>';
+      }
+    }
+    document.getElementById('refreshNoticeBtn').addEventListener('click',loadNotices);
+    loadNotices();
 
-      postListEl.querySelectorAll("button[data-del]").forEach(b=>{
-        b.addEventListener("click", ()=>{
-          const id = b.getAttribute("data-del");
-          const posts2 = loadPosts().filter(p => p.id !== id);
-          savePosts(posts2);
-          renderPosts();
+    function showToast(message){
+      const t=document.getElementById('toast');
+      t.textContent=message;
+      t.classList.add('show');
+      setTimeout(()=>t.classList.remove('show'),2200);
+    }
+
+    document.querySelectorAll('.class-btn').forEach(btn=>{
+      const key=btn.dataset.class;
+      const url=(CLASSROOM_LINKS[key]||'').trim();
+      if(url) btn.classList.remove('unset');
+      btn.addEventListener('click',()=>{
+        const target=(CLASSROOM_LINKS[key]||'').trim();
+        if(!target){
+          showToast(`전자기와 양자 ${key}반 클래스룸 링크를 먼저 입력하세요.`);
+          return;
+        }
+        window.open(target,'_blank','noopener,noreferrer');
+      });
+    });
+
+    const agentFab = document.getElementById('agentFab');
+    const agentPanel = document.getElementById('agentPanel');
+    const agentClose = document.getElementById('agentClose');
+    const agentForm = document.getElementById('agentForm');
+    const agentText = document.getElementById('agentText');
+    const agentMessages = document.getElementById('agentMessages');
+    const quickBtns = document.querySelectorAll('.quick-btn');
+    const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+
+    function openAgent(){
+      agentPanel.classList.add('open');
+      agentPanel.setAttribute('aria-hidden','false');
+    }
+
+    function closeAgent(){
+      agentPanel.classList.remove('open');
+      agentPanel.setAttribute('aria-hidden','true');
+    }
+
+    function escapeHtml(str){
+      return String(str)
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;');
+    }
+
+    function formatAgentMessage(text){
+      return escapeHtml(text)
+        .replace(/\n\n/g,'</p><p>')
+        .replace(/\n/g,'<br>');
+    }
+
+    function renderMathInElement(el){
+      if(window.MathJax && window.MathJax.typesetPromise){
+        MathJax.typesetClear([el]);
+        MathJax.typesetPromise([el]).catch(()=>{});
+      }
+    }
+
+    function addAgentMessage(text, role='bot', isTemporary=false){
+      const div = document.createElement('div');
+      div.className = `agent-msg ${role}`;
+      div.innerHTML = `<p>${formatAgentMessage(text)}</p>`;
+      if(isTemporary) div.dataset.temp = 'true';
+      agentMessages.appendChild(div);
+      agentMessages.scrollTop = agentMessages.scrollHeight;
+
+      if(role === 'bot'){
+        renderMathInElement(div);
+      }
+      return div;
+    }
+
+    async function askAgent(prompt){
+      addAgentMessage(prompt, 'user');
+      const loading = addAgentMessage('응답 생성 중입니다...', 'bot', true);
+
+      try{
+        const res = await fetch('./api/agent.php', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ prompt })
         });
-      });
+
+        const data = await res.json();
+        loading.remove();
+
+        if(!res.ok){
+          addAgentMessage(data.error || '에이전트 호출에 실패했습니다.', 'bot');
+          return;
+        }
+
+        addAgentMessage(data.reply || '응답이 없습니다.', 'bot');
+      }catch(e){
+        loading.remove();
+        addAgentMessage('서버 연결 중 오류가 발생했습니다.', 'bot');
+      }
     }
 
-    function setAdmin(on){
-      localStorage.setItem(LS_KEY_ADMIN, on ? "1" : "0");
-      adminPanel.style.display = on ? "block" : "none";
-      adminBadge.textContent = on ? "교사 편집 모드" : "학생 보기";
-      adminBtn.textContent = on ? "편집 중" : "교사용 편집";
-      renderPosts();
+    function downloadChatAsPdf(){
+      const renderedChatHtml = agentMessages.innerHTML;
+      const win = window.open('', '_blank', 'width=900,height=1000');
+
+      if(!win){
+        showToast('팝업이 차단되었습니다. 팝업 허용 후 다시 시도하세요.');
+        return;
+      }
+
+      win.document.open();
+      win.document.write(`
+        <!doctype html>
+        <html lang="ko">
+        <head>
+          <meta charset="utf-8">
+          <title>학습도우미 대화 내역</title>
+          <style>
+            body{
+              font-family:'Pretendard','Noto Sans KR',sans-serif;
+              margin:32px;
+              color:#16324f;
+              background:#fff;
+              line-height:1.65;
+            }
+            h1{margin:0 0 20px;font-size:24px}
+            .meta{margin-bottom:20px;color:#60758c;font-size:14px}
+            .agent-msg{
+              margin-bottom:14px;padding:14px 16px;border-radius:14px;border:1px solid #d9eaf5;
+              font-size:14px;page-break-inside:avoid;overflow-x:auto;overflow-y:hidden;
+            }
+            .agent-msg.user{background:#eef8ff}
+            .agent-msg.bot{background:#ffffff}
+            .agent-msg p{margin:0 0 10px}
+            .agent-msg p:last-child{margin-bottom:0}
+            mjx-container{margin:.4em 0 !important;max-width:none !important}
+            mjx-container[display="true"]{
+              display:block;overflow-x:auto;overflow-y:hidden;padding-bottom:4px;
+            }
+            svg{max-width:none !important;height:auto !important}
+            @media print{body{margin:18mm}}
+          </style>
+        </head>
+        <body>
+          <h1>학습도우미 대화 내역</h1>
+          <div class="meta">출력 시각: ${new Date().toLocaleString('ko-KR')}</div>
+          <div id="chatExport">${renderedChatHtml}</div>
+        </body>
+        </html>
+      `);
+      win.document.close();
+
+      setTimeout(() => {
+        win.focus();
+        win.print();
+      }, 1200);
     }
 
-    adminBtn.addEventListener("click", ()=>{
-      if(isAdmin()){
-        adminPanel.style.display = (adminPanel.style.display === "block") ? "none" : "block";
-        return;
-      }
-      const pw = prompt("교사용 비밀번호를 입력하세요:");
-      if(pw === null) return;
-      if(pw === ADMIN_PASSCODE){
-        setAdmin(true);
-        adminPanel.style.display = "block";
-      }else{
-        alert("비밀번호가 올바르지 않습니다.");
-      }
+    agentFab.addEventListener('click', openAgent);
+    agentClose.addEventListener('click', closeAgent);
+    downloadPdfBtn.addEventListener('click', downloadChatAsPdf);
+
+    agentForm.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const prompt = agentText.value.trim();
+      if(!prompt) return;
+      agentText.value = '';
+      askAgent(prompt);
     });
 
-    logoutBtn.addEventListener("click", ()=>{
-      setAdmin(false);
-      adminPanel.style.display = "none";
-    });
-
-    addPostBtn.addEventListener("click", ()=>{
-      if(!isAdmin()){
-        alert("교사용 편집 모드에서만 작성할 수 있습니다.");
-        return;
-      }
-      const title = postTitleEl.value.trim();
-      const body = postBodyEl.value.trim();
-      if(!title && !body){
-        alert("제목 또는 내용을 입력하세요.");
-        return;
-      }
-      const posts = loadPosts();
-      posts.push({
-        id: String(Date.now()) + "_" + Math.random().toString(16).slice(2),
-        title,
-        body,
-        meta: nowLocal(),
-        createdAt: Date.now()
+    quickBtns.forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        askAgent(btn.dataset.prompt);
       });
-      savePosts(posts);
-      postTitleEl.value = "";
-      postBodyEl.value = "";
-      renderPosts();
     });
 
-    clearAllBtn.addEventListener("click", ()=>{
-      if(!isAdmin()){
-        alert("교사용 편집 모드에서만 가능합니다.");
-        return;
+    window.addEventListener('load', ()=>{
+      const firstBot = document.querySelector('.agent-msg.bot');
+      if(firstBot){
+        renderMathInElement(firstBot);
       }
-      const ok = confirm("공지사항을 전부 삭제할까요? (되돌릴 수 없습니다)");
-      if(!ok) return;
-      savePosts([]);
-      renderPosts();
     });
-
-    // 최초 렌더 + 관리자 상태 복원
-    renderPosts();
-    setAdmin(isAdmin());
   </script>
 </body>
 </html>

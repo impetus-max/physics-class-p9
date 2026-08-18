@@ -1,0 +1,1356 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>02. 정전기 유도와 유전 분극 시뮬레이터</title>
+<style>
+:root {
+  --ink: #0f172a;
+  --bg-main: #f1f5f9;
+  --card-bg: #ffffff;
+  --blue: #2563eb;
+  --blue-hover: #1d4ed8;
+  --green: #059669;
+  --red: #dc2626;
+  --amber: #d97706;
+  --line: #cbd5e1;
+  --soft-bg: #f8fafc;
+  --electron-blue: #0284c7;
+  --proton-red: #ef4444;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Malgun Gothic", sans-serif;
+  background-color: var(--bg-main);
+  color: var(--ink);
+  line-height: 1.5;
+  -webkit-tap-highlight-color: transparent;
+}
+
+header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.header-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 10px 16px;
+}
+
+.title-area {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.title-area h1 {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.badge-tag {
+  font-size: 0.75rem;
+  background: #eff6ff;
+  color: var(--blue);
+  border: 1px solid #bfdbfe;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 700;
+}
+
+nav {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+nav::-webkit-scrollbar { display: none; }
+
+nav button {
+  white-space: nowrap;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: #ffffff;
+  padding: 8px 15px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+nav button:hover {
+  background: #f8fafc;
+  color: var(--ink);
+}
+
+nav button.active {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+}
+
+main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 14px;
+}
+
+.tab-content { display: none; }
+.tab-content.active {
+  display: block;
+  animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.card-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin-bottom: 10px;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.grid-layout {
+  display: grid;
+  grid-template-columns: 340px minmax(0, 1fr);
+  gap: 14px;
+}
+
+@media (max-width: 860px) {
+  .grid-layout { grid-template-columns: 1fr; }
+}
+
+.controls-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: #f8fafc;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+}
+
+.control-group label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #334155;
+  display: flex;
+  justify-content: space-between;
+}
+
+.control-group input[type="range"] {
+  width: 100%;
+  accent-color: var(--blue);
+  cursor: pointer;
+}
+
+select {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: #ffffff;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--ink);
+  outline: none;
+  cursor: pointer;
+}
+
+.btn-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+}
+
+.btn {
+  border: none;
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.btn-primary { background: var(--blue); color: #fff; }
+.btn-primary:hover { background: var(--blue-hover); }
+.btn-secondary { background: #e2e8f0; color: #334155; }
+.btn-secondary:hover { background: #cbd5e1; }
+.btn-success { background: var(--green); color: #fff; }
+.btn-danger { background: var(--red); color: #fff; }
+
+.steps-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+}
+
+.steps-container button {
+  padding: 9px 8px;
+  font-size: 0.8rem;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: #ffffff;
+  font-weight: 700;
+  color: #475569;
+  cursor: pointer;
+  text-align: left;
+  line-height: 1.3;
+}
+
+.steps-container button.active-step {
+  background: #eff6ff;
+  border-color: var(--blue);
+  color: var(--blue);
+  box-shadow: 0 0 0 2px rgba(37,99,235,0.2);
+}
+
+.canvas-wrapper {
+  position: relative;
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  touch-action: none;
+}
+
+.readout-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+}
+
+@media (max-width: 520px) {
+  .readout-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.metric-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 8px;
+  text-align: center;
+}
+
+.metric-card .title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.metric-card .value {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-top: 2px;
+}
+
+.info-box {
+  padding: 12px;
+  border-radius: 8px;
+  background: #f0f9ff;
+  border-left: 4px solid var(--blue);
+  margin-top: 10px;
+  font-size: 0.88rem;
+  color: #1e3a8a;
+  line-height: 1.5;
+}
+
+.legend {
+  display: flex;
+  gap: 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  background: #f8fafc;
+  border-radius: 6px;
+}
+
+.legend-item { display: flex; align-items: center; gap: 5px; }
+.badge-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.badge-plus { background: var(--proton-red); }
+.badge-minus { background: var(--electron-blue); }
+
+.concepts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 10px;
+}
+
+.concept-card {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px;
+  background: #ffffff;
+}
+
+.concept-card h3 {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--blue);
+  margin-bottom: 4px;
+}
+
+.concept-card p {
+  font-size: 0.85rem;
+  color: #475569;
+  line-height: 1.45;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-container">
+    <div class="title-area">
+      <h1>⚡ 정전기 유도와 유전 분극 시뮬레이터 <span class="badge-tag">교과서 pp. 16~17</span></h1>
+    </div>
+    <nav id="topNav">
+      <button data-tab="tab-intro" class="active">💡 탐구 전 개념</button>
+      <button data-tab="tab-spheres">🔴 해보기: 도체 공</button>
+      <button data-tab="tab-polar">💧 탐구: 유전 분극</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section id="tab-intro" class="tab-content active">
+    <div class="card" style="background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%); border-color: #bfdbfe;">
+      <h2 style="color:#1e40af; font-size:1.15rem; font-weight:800; margin-bottom:6px;">정밀 입자 물리 엔진 기반 시뮬레이션</h2>
+      <p style="font-size:0.88rem; color:#1e3a8a;">
+        본 시뮬레이션은 도체 내부 자유 전자의 실시간 이동과 절연체의 유전 분극 현상을 입자 수준에서 정밀하게 연산합니다. 
+        교과서 탐구 과정 ①~④를 정밀하게 재현하며, 음(-)전하 고무풍선과 양(+)전하 유리막대의 물리적 특징을 고화질 그래픽으로 관찰할 수 있습니다.
+      </p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">핵심 물리 개념 정리</div>
+      <div class="concepts-grid">
+        <div class="concept-card">
+          <h3>1. 도체의 정전기 유도</h3>
+          <p>도체 내부의 자유 전자가 외부 전기장에 반응하여 자유롭게 이동합니다. 대전체와 가까운 쪽은 반대 부호, 먼 쪽은 같은 부호의 전하가 유도됩니다.</p>
+        </div>
+        <div class="concept-card">
+          <h3>2. 가까이 한 채 분리</h3>
+          <p>대전체를 가까이 유지하여 전자가 이동해 있는 상태에서 도체 공 B를 수평으로 분리하면, 이동했던 전자가 돌아가지 못하고 각 공에 갇혀 반대 부호로 대전됩니다.</p>
+        </div>
+        <div class="concept-card">
+          <h3>3. 대전체 치우기</h3>
+          <p>이미 분리된 두 공은 외부 대전체를 치우더라도 전하가 다시 재이동하지 못하므로, 공 A는 (+), 공 B는 (-) 대전 상태를 그대로 유지합니다.</p>
+        </div>
+        <div class="concept-card">
+          <h3>4. 절연체의 유전 분극</h3>
+          <p>절연체(부도체)에는 자유 전자가 없지만, 외부 전기장에 의해 원자/분자 내 전자가 미세하게 치우쳐 쌍극자 분극 현상이 발생합니다.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-spheres" class="tab-content">
+    <div class="card">
+      <div class="card-title">
+        <span>교과서 p. 16 해보기: 도체 공의 정전기 유도</span>
+        <span style="font-size:0.78rem; font-weight:600; color:#64748b;">교과서 정밀 재현</span>
+      </div>
+
+      <div class="grid-layout">
+        <div class="controls-panel">
+          <div class="control-group">
+            <label>탐구 모드 선택</label>
+            <div class="btn-grid">
+              <button id="modeGuidedBtn" class="btn btn-primary">교과서 안내</button>
+              <button id="modeFreeBtn" class="btn btn-secondary">자유 탐구</button>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label>대전체 종류 선택</label>
+            <select id="rodTypeSelect">
+              <option value="balloon">🎈 음(-)전하 고무풍선</option>
+              <option value="glass">🥖 양(+)전하 유리막대</option>
+            </select>
+          </div>
+
+          <div id="guidedStepsGroup" class="control-group">
+            <label>교과서 탐구 단계 (① ~ ④)</label>
+            <div class="steps-container" id="guidedStepButtons">
+              <button class="active-step" data-step="1">① A·B 접촉 &<br>대전체 접근</button>
+              <button data-step="2">② 대전체 유지 &<br>B 수평 이동 분리</button>
+              <button data-step="3">③ 대전체 치우기<br>(대전 유지)</button>
+              <button data-step="4">④ 대전 상태 검증<br>(인력/척력)</button>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label>대전체 위치 거리: <span id="distVal">7.0 cm</span></label>
+            <input type="range" id="distSlider" min="3.5" max="18" step="0.5" value="7.0">
+          </div>
+
+          <div id="step4TestSelectGroup" class="control-group" style="display:none;">
+            <label>④단계 검증 관찰 공</label>
+            <select id="testBallSelect">
+              <option value="A">공 A (양(+)대전 공 검증)</option>
+              <option value="B">공 B (음(-)대전 공 검증)</option>
+            </select>
+          </div>
+
+          <div id="freeControlsGroup" class="control-group" style="display:none;">
+            <label>자유 탐구 제어</label>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              <button id="toggleContactBtn" class="btn btn-secondary">두 공 접촉 / 분리 토글</button>
+              <button id="toggleRodBtn" class="btn btn-secondary">대전체 보이기 / 숨기기</button>
+              <button id="resetFreeBtn" class="btn btn-danger">초기 상태로 리셋</button>
+            </div>
+          </div>
+
+          <div class="legend">
+            <div class="legend-item"><span class="badge-dot badge-plus"></span> 고정 양전하 (+12)</div>
+            <div class="legend-item"><span class="badge-dot badge-minus"></span> 자유 전자 (-전하)</div>
+          </div>
+        </div>
+
+        <div>
+          <div class="canvas-wrapper">
+            <canvas id="sphereCanvas" width="900" height="520" aria-label="도체 공 정전기 유도 시뮬레이션"></canvas>
+          </div>
+
+          <div class="readout-grid">
+            <div class="metric-card">
+              <div class="title">공 A 순전하</div>
+              <div class="value" id="netChargeAText">0 e</div>
+            </div>
+            <div class="metric-card">
+              <div class="title">공 B 순전하</div>
+              <div class="value" id="netChargeBText">0 e</div>
+            </div>
+            <div class="metric-card">
+              <div class="title">자유 전자 상태</div>
+              <div class="value" id="electronFlowText" style="font-size:0.85rem;">이동 완료</div>
+            </div>
+            <div class="metric-card">
+              <div class="title">실의 기울기</div>
+              <div class="value" id="tiltAngleText">0.0°</div>
+            </div>
+          </div>
+
+          <div id="stepDescriptionBox" class="info-box">
+            단계 설명 영역입니다.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-polar" class="tab-content">
+    <div class="card">
+      <div class="card-title">
+        <span>교과서 p. 17 탐구: 대전체와 절연체(물줄기/종잇조각)</span>
+        <span style="font-size:0.78rem; font-weight:600; color:#64748b;">유전 분극 & 정전기 인력</span>
+      </div>
+
+      <div class="grid-layout">
+        <div class="controls-panel">
+          <div class="control-group">
+            <label>대전체 종류</label>
+            <select id="polarRodTypeSelect">
+              <option value="balloon">🎈 음(-)전하 고무풍선</option>
+              <option value="glass">🥖 양(+)전하 유리막대</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <label>대전체 접근 거리: <span id="polarDistVal">10.0 cm</span></label>
+            <input type="range" id="polarDistSlider" min="2.0" max="18" step="0.5" value="10.0">
+          </div>
+
+          <div class="control-group">
+            <label>관찰 대상 절연체</label>
+            <select id="polarMaterialSelect">
+              <option value="paper">📄 종잇조각 (바닥에 놓인 종이 끌려 올라옴)</option>
+              <option value="water">💧 물줄기 (극성 분자 $H_2O$ 회전 & 휘어짐)</option>
+            </select>
+          </div>
+
+          <div class="info-box" style="margin-top:0; background:#fefce8; border-color:#eab308; color:#854d0e;">
+            <strong>💡 탐구 핵심:</strong> 대전체의 부호(+/-)와 관계없이, 절연체 내부에서 유전 분극이 일어나 항상 대전체 쪽으로 끌려옵니다!
+          </div>
+        </div>
+
+        <div>
+          <div class="canvas-wrapper">
+            <canvas id="polarCanvas" width="900" height="520" aria-label="유전 분극 시뮬레이션"></canvas>
+          </div>
+
+          <div class="readout-grid">
+            <div class="metric-card">
+              <div class="title">대전체 가까운 쪽</div>
+              <div class="value" id="polarNearSideText">양(+) 전하</div>
+            </div>
+            <div class="metric-card">
+              <div class="title">대전체 먼 쪽</div>
+              <div class="value" id="polarFarSideText">음(-) 전하</div>
+            </div>
+            <div class="metric-card">
+              <div class="title">분극 세기</div>
+              <div class="value" id="polarAmountText">보통</div>
+            </div>
+            <div class="metric-card">
+              <div class="title">정전기 알짜 힘</div>
+              <div class="value" id="polarForceText" style="color:var(--blue);">끌림 (인력)</div>
+            </div>
+          </div>
+
+          <div id="polarExplanationBox" class="info-box">
+            설명 영역입니다.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+// Utility Functions
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+
+// Tab Navigation logic
+$$('#topNav button').forEach(btn => {
+  btn.onclick = () => {
+    $$('#topNav button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    $$('.tab-content').forEach(tc => tc.classList.remove('active'));
+    $(`#${btn.dataset.tab}`).classList.add('active');
+    
+    resizeCanvases();
+  };
+});
+
+// Canvas Scaling Helper
+function setupCanvas(canvas) {
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = 900 * dpr;
+  canvas.height = 520 * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  return ctx;
+}
+
+const sim = {
+  mode: 'guided',       // 'guided' | 'free'
+  step: 1,              // 1..4
+  rodType: 'balloon',   // 'balloon' (negative) | 'glass' (positive)
+  rodQ: -8,             // -8 for balloon, +8 for glass
+  distance: 7.0,        // cm
+  testBall: 'A',        // 'A' | 'B'
+  
+  showRod: true,
+  showSphereB: true,
+  contact: true,
+  
+  // Base Horizontal Positions for Spheres A & B
+  targetAx: 430,
+  targetBx: 590, // When contacting, B is at 590. When separated in Step 2, B moves horizontally to 730!
+  currAx: 430,
+  currBx: 590,
+
+  rodX: 180,
+  rodY: 280,
+  isDraggingRod: false,
+
+  sphereA: { x: 430, y: 280, theta: 0, netQ: 0 },
+  sphereB: { x: 590, y: 280, theta: 0, netQ: 0 },
+
+  electrons: [],
+  latticeA: [],
+  latticeB: []
+};
+
+// Initialize Ion Lattices & Electrons
+function initSphereParticles() {
+  sim.latticeA = [];
+  sim.latticeB = [];
+  sim.electrons = [];
+
+  const numIons = 12;
+  for (let i = 0; i < numIons; i++) {
+    const angle = (2 * Math.PI * i) / numIons;
+    const r = (i % 2 === 0) ? 42 : 68;
+    sim.latticeA.push({ relX: r * Math.cos(angle), relY: r * Math.sin(angle) });
+    sim.latticeB.push({ relX: r * Math.cos(angle), relY: r * Math.sin(angle) });
+  }
+
+  // 12 electrons assigned to Sphere A, 12 to Sphere B initially
+  for (let i = 0; i < 24; i++) {
+    const isA = i < 12;
+    const angle = Math.random() * Math.PI * 2;
+    const r = Math.random() * 60;
+    sim.electrons.push({
+      sphere: isA ? 'A' : 'B',
+      x: (isA ? 430 : 590) + r * Math.cos(angle),
+      y: 280 + r * Math.sin(angle),
+      vx: 0,
+      vy: 0
+    });
+  }
+}
+initSphereParticles();
+
+const sphereCanvas = $('#sphereCanvas');
+const sCtx = setupCanvas(sphereCanvas);
+
+function drawChargedObject(ctx, x, y, type) {
+  ctx.save();
+  ctx.translate(x, y);
+
+  if (type === 'balloon') {
+    // 🎈 RUBBER BALLOON (음(-)전하 고무풍선)
+    ctx.shadowColor = 'rgba(220, 38, 38, 0.25)';
+    ctx.shadowBlur = 12;
+    
+    // Balloon Body Gradient
+    const bGrad = ctx.createRadialGradient(-15, -18, 10, 0, 0, 70);
+    bGrad.addColorStop(0, '#fca5a5');
+    bGrad.addColorStop(0.4, '#ef4444');
+    bGrad.addColorStop(1, '#991b1b');
+
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 65, 52, 0, 0, Math.PI * 2);
+    ctx.fillStyle = bGrad;
+    ctx.fill();
+
+    // Balloon Knot & String
+    ctx.beginPath();
+    ctx.moveTo(-65, 0);
+    ctx.lineTo(-73, -6);
+    ctx.lineTo(-73, 6);
+    ctx.closePath();
+    ctx.fillStyle = '#991b1b';
+    ctx.fill();
+
+    // String
+    ctx.beginPath();
+    ctx.moveTo(-73, 0);
+    ctx.quadraticCurveTo(-95, 20, -110, 45);
+    ctx.strokeStyle = '#64748b';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Negative Charges (-)
+    ctx.shadowColor = 'transparent';
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 22px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const signs = ['−', '−', '−', '−', '−', '−'];
+    const coords = [[-30, -15], [0, -25], [30, -10], [-20, 15], [15, 15], [35, 0]];
+    coords.forEach((c, i) => ctx.fillText(signs[i], c[0], c[1]));
+
+    // Label
+    ctx.fillStyle = '#0f172a';
+    ctx.font = 'bold 13px sans-serif';
+    ctx.fillText('음(-) 대전체 고무풍선', 0, 72);
+
+  } else {
+    // 🥖 GLASS ROD (양(+)전하 유리막대)
+    ctx.shadowColor = 'rgba(2, 132, 199, 0.25)';
+    ctx.shadowBlur = 12;
+
+    const gGrad = ctx.createLinearGradient(0, -26, 0, 26);
+    gGrad.addColorStop(0, '#e0f2fe');
+    gGrad.addColorStop(0.5, '#38bdf8');
+    gGrad.addColorStop(1, '#0284c7');
+
+    ctx.beginPath();
+    ctx.roundRect(-80, -24, 160, 48, 24);
+    ctx.fillStyle = gGrad;
+    ctx.fill();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Glass Shine Highlight Line
+    ctx.beginPath();
+    ctx.moveTo(-65, -12);
+    ctx.lineTo(65, -12);
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    // Positive Charges (+)
+    ctx.shadowColor = 'transparent';
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 20px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    for (let i = -2; i <= 2; i++) {
+      ctx.fillText('+', i * 28, 2);
+    }
+
+    // Label
+    ctx.fillStyle = '#0f172a';
+    ctx.font = 'bold 13px sans-serif';
+    ctx.fillText('양(+) 대전체 유리막대', 0, 42);
+  }
+
+  ctx.restore();
+}
+
+function updateSpherePhysics() {
+  // Smoothly move base target positions (Handles Step 2 horizontal movement of B!)
+  sim.currAx += (sim.targetAx - sim.currAx) * 0.1;
+  sim.currBx += (sim.targetBx - sim.currBx) * 0.1;
+
+  // Calculate Net Charges
+  const countA = sim.electrons.filter(e => e.sphere === 'A').length;
+  const countB = sim.electrons.filter(e => e.sphere === 'B').length;
+  
+  sim.sphereA.netQ = 12 - countA;
+  sim.sphereB.netQ = sim.showSphereB ? (12 - countB) : 0;
+
+  // Thread Tilt Angles from Coulomb Deflection Force
+  const rodPresence = sim.showRod ? 1 : 0;
+  
+  // Sphere A Deflection
+  const distA = Math.max(90, Math.abs(sim.currAx - sim.rodX));
+  const forceA_Rod = rodPresence * (sim.rodQ * sim.sphereA.netQ * 3600) / (distA * distA);
+  const neutralAttractA = (sim.sphereA.netQ === 0 && rodPresence) ? (Math.sign(sim.rodX - sim.currAx) * (Math.abs(sim.rodQ) * 1600) / (distA * distA)) : 0;
+  const targetAngleA = clamp(-(forceA_Rod + neutralAttractA) * 0.045, -22, 22);
+  sim.sphereA.theta += (targetAngleA - sim.sphereA.theta) * 0.12;
+  sim.sphereA.x = sim.currAx + Math.sin(sim.sphereA.theta * Math.PI / 180) * 110;
+
+  // Sphere B Deflection
+  const distB = Math.max(90, Math.abs(sim.currBx - sim.rodX));
+  const forceB_Rod = rodPresence * (sim.rodQ * sim.sphereB.netQ * 3600) / (distB * distB);
+  const neutralAttractB = (sim.sphereB.netQ === 0 && rodPresence) ? (Math.sign(sim.rodX - sim.currBx) * (Math.abs(sim.rodQ) * 1600) / (distB * distB)) : 0;
+  const targetAngleB = clamp(-(forceB_Rod + neutralAttractB) * 0.045, -22, 22);
+  sim.sphereB.theta += (targetAngleB - sim.sphereB.theta) * 0.12;
+  sim.sphereB.x = sim.currBx + Math.sin(sim.sphereB.theta * Math.PI / 180) * 110;
+
+  // Electrons Movement Logic
+  const R = 72;
+  sim.electrons.forEach((e, idx) => {
+    let fx = 0, fy = 0;
+    const hostSphere = e.sphere === 'A' ? sim.sphereA : sim.sphereB;
+
+    // 1. Force from Charged Rod
+    if (rodPresence) {
+      const dx = e.x - sim.rodX;
+      const dy = e.y - sim.rodY;
+      const d2 = Math.max(1200, dx * dx + dy * dy);
+      const d = Math.sqrt(d2);
+      const fMag = (-1 * sim.rodQ * 85000) / d2;
+      fx += (dx / d) * fMag;
+      fy += (dy / d) * fMag;
+    }
+
+    // 2. Electron-Electron Repulsion
+    sim.electrons.forEach((other, oIdx) => {
+      if (idx === oIdx) return;
+      const dx = e.x - other.x;
+      const dy = e.y - other.y;
+      const d2 = Math.max(220, dx * dx + dy * dy);
+      const d = Math.sqrt(d2);
+      fx += (dx / d) * (1800 / d2);
+      fy += (dy / d) * (1800 / d2);
+    });
+
+    // 3. Lattice Attraction
+    const lattice = e.sphere === 'A' ? sim.latticeA : sim.latticeB;
+    lattice.forEach(ion => {
+      const ionAbsX = hostSphere.x + ion.relX;
+      const ionAbsY = hostSphere.y + ion.relY;
+      const dx = ionAbsX - e.x;
+      const dy = ionAbsY - e.y;
+      const d2 = Math.max(150, dx * dx + dy * dy);
+      const d = Math.sqrt(d2);
+      fx += (dx / d) * (250 / d2);
+      fy += (dy / d) * (250 / d2);
+    });
+
+    e.vx = (e.vx + fx * 0.08) * 0.72;
+    e.vy = (e.vy + fy * 0.08) * 0.72;
+    e.x += e.vx;
+    e.y += e.vy;
+
+    // Contact Bridge Conduction
+    if (sim.contact && sim.showSphereB) {
+      const bridgeX = (sim.sphereA.x + sim.sphereB.x) / 2;
+      if (e.sphere === 'A' && e.x > bridgeX - 10) {
+        if (e.vx > 0 || fx > 0) e.sphere = 'B';
+      } else if (e.sphere === 'B' && e.x < bridgeX + 10) {
+        if (e.vx < 0 || fx < 0) e.sphere = 'A';
+      }
+    }
+
+    // Sphere Boundary Confinement
+    const currentHost = e.sphere === 'A' ? sim.sphereA : sim.sphereB;
+    const cdx = e.x - currentHost.x;
+    const cdy = e.y - currentHost.y;
+    const cd = Math.sqrt(cdx * cdx + cdy * cdy);
+
+    if (cd > R) {
+      e.x = currentHost.x + (cdx / cd) * R;
+      e.y = currentHost.y + (cdy / cd) * R;
+      e.vx *= -0.3;
+      e.vy *= -0.3;
+    }
+  });
+}
+
+function drawSphereCanvas() {
+  updateSpherePhysics();
+
+  sCtx.clearRect(0, 0, 900, 520);
+
+  // Background Grid
+  sCtx.strokeStyle = '#f1f5f9';
+  sCtx.lineWidth = 1;
+  for (let x = 0; x < 900; x += 30) {
+    sCtx.beginPath(); sCtx.moveTo(x, 0); sCtx.lineTo(x, 520); sCtx.stroke();
+  }
+
+  // Draw Ceiling Stand Support
+  sCtx.fillStyle = '#64748b';
+  sCtx.fillRect(300, 30, 480, 8);
+  sCtx.fillStyle = '#94a3b8';
+  for (let x = 310; x <= 770; x += 20) {
+    sCtx.beginPath(); sCtx.moveTo(x, 30); sCtx.lineTo(x - 10, 20); sCtx.stroke();
+  }
+
+  // Draw Metallic Sphere Helper
+  function drawSphere(sphereObj, label, pivotX, isVisible) {
+    if (!isVisible) return;
+
+    // String Thread
+    sCtx.strokeStyle = '#475569';
+    sCtx.lineWidth = 2;
+    sCtx.beginPath();
+    sCtx.moveTo(pivotX, 38);
+    sCtx.lineTo(sphereObj.x, sphereObj.y);
+    sCtx.stroke();
+
+    // Metallic Gradient Body
+    const grad = sCtx.createRadialGradient(
+      sphereObj.x - 25, sphereObj.y - 25, 10,
+      sphereObj.x, sphereObj.y, 80
+    );
+    grad.addColorStop(0, '#ffffff');
+    grad.addColorStop(0.35, '#cbd5e1');
+    grad.addColorStop(0.85, '#64748b');
+    grad.addColorStop(1, '#334155');
+
+    sCtx.beginPath();
+    sCtx.arc(sphereObj.x, sphereObj.y, 80, 0, Math.PI * 2);
+    sCtx.fillStyle = grad;
+    sCtx.fill();
+    sCtx.strokeStyle = '#475569';
+    sCtx.lineWidth = 2;
+    sCtx.stroke();
+
+    // Lattice Ions
+    const lattice = label === 'A' ? sim.latticeA : sim.latticeB;
+    lattice.forEach(ion => {
+      const ix = sphereObj.x + ion.relX;
+      const iy = sphereObj.y + ion.relY;
+
+      sCtx.beginPath();
+      sCtx.arc(ix, iy, 9, 0, Math.PI * 2);
+      sCtx.fillStyle = '#ef4444';
+      sCtx.fill();
+
+      sCtx.fillStyle = '#ffffff';
+      sCtx.font = 'bold 12px sans-serif';
+      sCtx.textAlign = 'center';
+      sCtx.textBaseline = 'middle';
+      sCtx.fillText('+', ix, iy);
+    });
+
+    // Sphere Title
+    sCtx.fillStyle = '#0f172a';
+    sCtx.font = 'bold 22px sans-serif';
+    sCtx.textAlign = 'center';
+    sCtx.fillText(`도체 공 ${label}`, sphereObj.x, sphereObj.y + 115);
+  }
+
+  drawSphere(sim.sphereA, 'A', sim.currAx, true);
+  drawSphere(sim.sphereB, 'B', sim.currBx, sim.showSphereB);
+
+  // Contact Bridge visual
+  if (sim.contact && sim.showSphereB && Math.abs(sim.sphereA.x - sim.sphereB.x) < 165) {
+    sCtx.fillStyle = '#94a3b8';
+    sCtx.fillRect((sim.sphereA.x + sim.sphereB.x) / 2 - 8, 260, 16, 40);
+  }
+
+  // Draw Mobile Free Electrons
+  sim.electrons.forEach(e => {
+    if (e.sphere === 'B' && !sim.showSphereB) return;
+
+    sCtx.beginPath();
+    sCtx.arc(e.x, e.y, 11, 0, Math.PI * 2);
+    sCtx.fillStyle = 'rgba(2, 132, 199, 0.25)';
+    sCtx.fill();
+
+    sCtx.beginPath();
+    sCtx.arc(e.x, e.y, 8, 0, Math.PI * 2);
+    sCtx.fillStyle = '#0284c7';
+    sCtx.fill();
+
+    sCtx.fillStyle = '#ffffff';
+    sCtx.font = 'bold 13px sans-serif';
+    sCtx.textAlign = 'center';
+    sCtx.textBaseline = 'middle';
+    sCtx.fillText('−', e.x, e.y - 1);
+  });
+
+  // Draw Charged Object (Balloon/Glass Rod)
+  if (sim.showRod) {
+    drawChargedObject(sCtx, sim.rodX, sim.rodY, sim.rodType);
+  }
+
+  updateReadoutUI();
+  requestAnimationFrame(drawSphereCanvas);
+}
+
+function updateReadoutUI() {
+  const netA = sim.sphereA.netQ;
+  const netB = sim.sphereB.netQ;
+
+  $('#netChargeAText').textContent = `${netA > 0 ? '+' : ''}${netA} e`;
+  $('#netChargeAText').style.color = netA > 0 ? 'var(--red)' : (netA < 0 ? 'var(--electron-blue)' : 'var(--ink)');
+
+  if (sim.showSphereB) {
+    $('#netChargeBText').textContent = `${netB > 0 ? '+' : ''}${netB} e`;
+    $('#netChargeBText').style.color = netB > 0 ? 'var(--red)' : (netB < 0 ? 'var(--electron-blue)' : 'var(--ink)');
+  } else {
+    $('#netChargeBText').textContent = '-';
+  }
+
+  let flowText = '내부 재분포';
+  if (sim.contact && sim.showSphereB && sim.showRod) {
+    flowText = sim.rodQ < 0 ? 'A ➔ B 이동' : 'B ➔ A 이동';
+  } else if (!sim.contact && sim.showSphereB) {
+    flowText = '전하 고정 보존';
+  }
+  $('#electronFlowText').textContent = flowText;
+  $('#tiltAngleText').textContent = `${Math.abs(sim.sphereA.theta).toFixed(1)}°`;
+}
+
+function setGuidedStep(stepNum) {
+  sim.step = stepNum;
+  sim.testBall = $('#testBallSelect').value;
+
+  $$('#guidedStepButtons button').forEach(btn => {
+    btn.classList.toggle('active-step', Number(btn.dataset.step) === stepNum);
+  });
+
+  const stepBox = $('#stepDescriptionBox');
+  const testGroup = $('#step4TestSelectGroup');
+  testGroup.style.display = stepNum === 4 ? 'block' : 'none';
+
+  if (stepNum === 1) {
+    // ① A·B 접촉 & 대전체 접근
+    sim.showSphereB = true;
+    sim.contact = true;
+    sim.showRod = true;
+    sim.targetAx = 430;
+    sim.targetBx = 590; // Contacting position
+    sim.rodX = 180;
+    sim.distance = 7.0;
+    initSphereParticles();
+
+    stepBox.innerHTML = '<strong>과정 ① [A·B 접촉 & 대전체 접근]:</strong> 접촉해 있는 두 도체 공 A, B 중 A 가까이에 대전체를 가까이 가져갑니다. 자유 전자가 전기력을 받아 A에서 B로 이동하여 A는 (+), B는 (-) 전하가 유도됩니다.';
+  } 
+  else if (stepNum === 2) {
+    // ② 대전체 유지 & B 수평 이동 분리
+    sim.showSphereB = true;
+    sim.contact = false; // Disconnect conduction bridge
+    sim.showRod = true;
+    sim.targetAx = 430;
+    sim.targetBx = 720; // 💡 공 B가 수평 방향 오른쪽으로 멀리 움직임!
+    sim.rodX = 180;
+
+    stepBox.innerHTML = '<strong>과정 ② [대전체 유지 & B 수평 이동 분리]:</strong> <u>대전체를 A 근처에 그대로 가까이 유지한 상태</u>에서, <strong>도체 공 B를 수평 방향 오른쪽으로 멀리 이동시켜 분리</strong>합니다. B로 넘어간 자유 전자는 A로 돌아오지 못하고 B에 갇힙니다.';
+  } 
+  else if (stepNum === 3) {
+    // ③ 대전체 치우기
+    sim.showSphereB = true;
+    sim.contact = false;
+    sim.showRod = false; // 💡 대전체를 멀리 치움!
+    sim.targetAx = 430;
+    sim.targetBx = 720;
+
+    stepBox.innerHTML = '<strong>과정 ③ [대전체 치우기]:</strong> 대전체를 멀리 치웁니다. 두 공이 이미 서로 멀리 분리되어 있으므로 전하가 재이동하지 못하여 공 A는 양(+), 공 B는 음(-) 대전 상태를 그대로 유지합니다.';
+  } 
+  else if (stepNum === 4) {
+    // ④ 대전 상태 검증 (인력/척력)
+    sim.showSphereB = true;
+    sim.contact = false;
+    sim.showRod = true;
+    sim.targetAx = 430;
+    sim.targetBx = 720;
+
+    // Ensure A is (+4e) and B is (-4e)
+    sim.electrons.forEach((e, idx) => {
+      e.sphere = idx < 8 ? 'A' : 'B';
+    });
+
+    if (sim.testBall === 'A') {
+      sim.rodX = 190;
+      stepBox.innerHTML = '<strong>과정 ④ [공 A 대전 검증]:</strong> 양(+)으로 대전된 공 A에 대전체를 가까이 하면 **인력(끌림)**이 발생하여 실이 대전체 쪽으로 기울어집니다.';
+    } else {
+      sim.rodX = 540;
+      stepBox.innerHTML = '<strong>과정 ④ [공 B 대전 검증]:</strong> 음(-)으로 대전된 공 B에 동일한 음(-) 대전체를 가까이 하면 **척력(밀림)**이 발생하여 실이 대전체 반대쪽으로 기울어집니다.';
+    }
+  }
+
+  $('#distSlider').value = sim.distance;
+  $('#distVal').textContent = `${sim.distance.toFixed(1)} cm`;
+}
+
+// Rod Type Change Event Listener
+$('#rodTypeSelect').onchange = e => {
+  sim.rodType = e.target.value;
+  sim.rodQ = sim.rodType === 'balloon' ? -8 : 8;
+  if (sim.mode === 'guided') setGuidedStep(sim.step);
+};
+
+// Mode Switches
+$('#modeGuidedBtn').onclick = () => {
+  sim.mode = 'guided';
+  $('#modeGuidedBtn').className = 'btn btn-primary';
+  $('#modeFreeBtn').className = 'btn btn-secondary';
+  $('#guidedStepsGroup').style.display = 'block';
+  $('#freeControlsGroup').style.display = 'none';
+  setGuidedStep(1);
+};
+
+$('#modeFreeBtn').onclick = () => {
+  sim.mode = 'free';
+  $('#modeFreeBtn').className = 'btn btn-primary';
+  $('#modeGuidedBtn').className = 'btn btn-secondary';
+  $('#guidedStepsGroup').style.display = 'none';
+  $('#freeControlsGroup').style.display = 'block';
+  $('#step4TestSelectGroup').style.display = 'none';
+  sim.showSphereB = true;
+  sim.contact = false;
+  sim.targetAx = 430;
+  sim.targetBx = 610;
+  $('#stepDescriptionBox').innerHTML = '<strong>자유 탐구 모드:</strong> 대전체 위치 및 종류를 자유롭게 바꾸고 두 공을 직접 접촉/분리하여 정전기 유도를 탐구하세요.';
+};
+
+$$('#guidedStepButtons button').forEach(btn => {
+  btn.onclick = () => setGuidedStep(Number(btn.dataset.step));
+});
+
+$('#distSlider').oninput = e => {
+  sim.distance = Number(e.target.value);
+  $('#distVal').textContent = `${sim.distance.toFixed(1)} cm`;
+  if (sim.step !== 4 || sim.testBall === 'A') {
+    sim.rodX = 410 - sim.distance * 24;
+  } else {
+    sim.rodX = 540 + sim.distance * 24;
+  }
+};
+
+$('#testBallSelect').onchange = e => {
+  sim.testBall = e.target.value;
+  if (sim.step === 4) setGuidedStep(4);
+};
+
+$('#toggleContactBtn').onclick = () => {
+  sim.contact = !sim.contact;
+  if (sim.contact) sim.targetBx = 590;
+  else sim.targetBx = 710;
+};
+
+$('#toggleRodBtn').onclick = () => sim.showRod = !sim.showRod;
+$('#resetFreeBtn').onclick = () => {
+  initSphereParticles();
+  sim.contact = false;
+  sim.showRod = true;
+  sim.showSphereB = true;
+  sim.targetAx = 430;
+  sim.targetBx = 650;
+  sim.rodX = 180;
+  sim.rodY = 280;
+};
+
+// Pointer Drag Handling for Rod
+function getCanvasPointerPos(canvas, evt) {
+  const rect = canvas.getBoundingClientRect();
+  const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+  const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
+  return {
+    x: (clientX - rect.left) * (900 / rect.width),
+    y: (clientY - rect.top) * (520 / rect.height)
+  };
+}
+
+sphereCanvas.addEventListener('pointerdown', e => {
+  const p = getCanvasPointerPos(sphereCanvas, e);
+  if (Math.hypot(p.x - sim.rodX, p.y - sim.rodY) < 90) {
+    sim.isDraggingRod = true;
+    sphereCanvas.setPointerCapture(e.pointerId);
+  }
+});
+
+sphereCanvas.addEventListener('pointermove', e => {
+  if (!sim.isDraggingRod) return;
+  const p = getCanvasPointerPos(sphereCanvas, e);
+  sim.rodX = clamp(p.x, 70, 830);
+  sim.rodY = clamp(p.y, 140, 420);
+
+  const dist = Math.abs(sim.sphereA.x - sim.rodX) / 24;
+  sim.distance = clamp(dist, 3.5, 18);
+  $('#distSlider').value = sim.distance;
+  $('#distVal').textContent = `${sim.distance.toFixed(1)} cm`;
+});
+
+sphereCanvas.addEventListener('pointerup', () => sim.isDraggingRod = false);
+
+const polarCanvas = $('#polarCanvas');
+const pCtx = setupCanvas(polarCanvas);
+
+// Paper Bits Initial Resting Objects (Placed flat on table at y=420)
+const paperBits = [];
+for (let i = 0; i < 18; i++) {
+  paperBits.push({
+    x: 480 + (i % 6) * 48 + (Math.random() - 0.5) * 12,
+    y: 420 + Math.floor(i / 6) * 22, // 💡 바닥 테이블에 평평하게 놓인 상태로 시작!
+    origX: 0,
+    origY: 0,
+    vx: 0, vy: 0,
+    angle: (Math.random() - 0.5) * 0.2,
+    attached: false
+  });
+  paperBits[i].origX = paperBits[i].x;
+  paperBits[i].origY = paperBits[i].y;
+}
+
+function drawPolarizationCanvas() {
+  const rodType = $('#polarRodTypeSelect').value;
+  const distance = Number($('#polarDistSlider').value);
+  const material = $('#polarMaterialSelect').value;
+
+  $('#polarDistVal').textContent = `${distance.toFixed(1)} cm`;
+
+  pCtx.clearRect(0, 0, 900, 520);
+
+  // Background Grid
+  pCtx.strokeStyle = '#f1f5f9';
+  pCtx.lineWidth = 1;
+  for (let x = 0; x < 900; x += 30) {
+    pCtx.beginPath(); pCtx.moveTo(x, 0); pCtx.lineTo(x, 520); pCtx.stroke();
+  }
+
+  // Rod Position based on Distance Slider
+  const rodX = 420 - distance * 20;
+  const rodY = material === 'paper' ? 220 : 250; // Lower rod slightly for paper bits
+
+  // Draw Charged Object
+  drawChargedObject(pCtx, rodX, rodY, rodType);
+
+  const isNeg = rodType === 'balloon';
+  const polFactor = clamp((18.5 - distance) / 15, 0.05, 1.0);
+
+  // UI Metrics
+  $('#polarNearSideText').textContent = isNeg ? '양(+) 전하' : '음(-) 전하';
+  $('#polarFarSideText').textContent = isNeg ? '음(-) 전하' : '양(+) 전하';
+  $('#polarAmountText').textContent = polFactor < 0.3 ? '약함' : (polFactor < 0.7 ? '보통' : '강함');
+
+  if (material === 'water') {
+    // 💧 WATER STREAM SIMULATION
+    $('#polarExplanationBox').innerHTML = '<strong>물줄기 유전 분극:</strong> 물($H_2O$)은 극성 분자입니다. 대전체가 접근하면 물 분자들이 회전하여 대전체와 반대 부호의 전하가 대전체를 향하게 정렬되며, 끌어당기는 정전기력에 의해 물줄기가 대전체 쪽으로 휘어집니다.';
+
+    // Water Nozzle
+    pCtx.fillStyle = '#64748b';
+    pCtx.fillRect(520, 0, 40, 40);
+
+    const bendAmount = polFactor * 135;
+    pCtx.strokeStyle = 'rgba(56, 189, 248, 0.85)';
+    pCtx.lineWidth = 30;
+    pCtx.lineCap = 'round';
+
+    pCtx.beginPath();
+    pCtx.moveTo(540, 40);
+    pCtx.bezierCurveTo(
+      540, 160,
+      540 - bendAmount * 1.2, 280,
+      540 - bendAmount * 0.8, 520
+    );
+    pCtx.stroke();
+
+    // Micro H2O Dipoles
+    const numDipoles = 8;
+    for (let i = 0; i < numDipoles; i++) {
+      const t = (i + 1) / (numDipoles + 1);
+      const myY = 50 + t * 400;
+      const myX = 540 - (t < 0.5 ? Math.pow(t * 2, 2) * bendAmount * 0.6 : bendAmount * (0.6 + (t - 0.5) * 0.4));
+      const dipAngle = isNeg ? Math.PI : 0;
+
+      pCtx.save();
+      pCtx.translate(myX, myY);
+      pCtx.rotate(dipAngle);
+
+      pCtx.beginPath();
+      pCtx.ellipse(0, 0, 20, 11, 0, 0, Math.PI * 2);
+      pCtx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+      pCtx.fill();
+      pCtx.strokeStyle = '#0284c7';
+      pCtx.lineWidth = 2;
+      pCtx.stroke();
+
+      pCtx.beginPath(); pCtx.arc(-10, 0, 6, 0, Math.PI * 2); pCtx.fillStyle = '#ef4444'; pCtx.fill(); // +
+      pCtx.beginPath(); pCtx.arc(10, 0, 6, 0, Math.PI * 2); pCtx.fillStyle = '#0284c7'; pCtx.fill();  // -
+
+      pCtx.fillStyle = '#fff';
+      pCtx.font = 'bold 9px sans-serif';
+      pCtx.textAlign = 'center'; pCtx.textBaseline = 'middle';
+      pCtx.fillText('+', -10, 0);
+      pCtx.fillText('−', 10, 0);
+
+      pCtx.restore();
+    }
+
+  } else {
+    // 📄 PAPER BITS SIMULATION (Fixed Starting Position on Table!)
+    $('#polarExplanationBox').innerHTML = '<strong>종잇조각 정전기 끌림:</strong> 종이(절연체)에 대전체를 가까이 가져가면, 종이 원자 내부에서 <strong>유전 분극</strong>이 일어납니다. 대전체와 가까운 쪽에 반대 부호 전하가 형성되어 정전기 인력이 중력보다 커지는 순간 <u>종잇조각이 위로 붕 떠올라 대전체에 달라붙습니다!</u>';
+
+    // Table Surface
+    pCtx.fillStyle = '#cbd5e1';
+    pCtx.fillRect(380, 440, 480, 12);
+    pCtx.fillStyle = '#94a3b8';
+    pCtx.font = '700 12px sans-serif';
+    pCtx.fillText('실험대 바닥 표면', 580, 470);
+
+    paperBits.forEach((paper, i) => {
+      // Electrostatic Lift Force calculation
+      const dx = rodX + 50 - paper.x;
+      const dy = rodY + 20 - paper.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      // Attraction Threshold: When distance < 180px (distance slider < 11cm), paper bits get pulled up!
+      if (dist < 220 && polFactor > 0.4) {
+        const targetX = rodX + 50 + (i % 4) * 16 - 24;
+        const targetY = rodY + 30 + Math.floor(i / 4) * 14;
+
+        paper.x += (targetX - paper.x) * 0.12;
+        paper.y += (targetY - paper.y) * 0.12;
+        paper.angle = (isNeg ? -0.3 : 0.3) + Math.sin(Date.now() * 0.005 + i) * 0.1;
+      } else {
+        // Fall back to resting position on table!
+        paper.x += (paper.origX - paper.x) * 0.1;
+        paper.y += (paper.origY - paper.y) * 0.1;
+        paper.angle *= 0.8;
+      }
+
+      pCtx.save();
+      pCtx.translate(paper.x, paper.y);
+      pCtx.rotate(paper.angle);
+
+      // Paper Piece Visual
+      pCtx.fillStyle = '#fef08a';
+      pCtx.strokeStyle = '#ca8a04';
+      pCtx.lineWidth = 1.5;
+      pCtx.beginPath();
+      pCtx.roundRect(-18, -11, 36, 22, 4);
+      pCtx.fill();
+      pCtx.stroke();
+
+      // Bound Dipole Charges inside Paper Piece
+      const nearPos = isNeg ? -8 : 8;
+      const farPos = isNeg ? 8 : -8;
+
+      pCtx.beginPath(); pCtx.arc(nearPos, 0, 4.5, 0, Math.PI * 2);
+      pCtx.fillStyle = isNeg ? '#ef4444' : '#0284c7';
+      pCtx.fill();
+
+      pCtx.beginPath(); pCtx.arc(farPos, 0, 4.5, 0, Math.PI * 2);
+      pCtx.fillStyle = isNeg ? '#0284c7' : '#ef4444';
+      pCtx.fill();
+
+      pCtx.restore();
+    });
+  }
+
+  requestAnimationFrame(drawPolarizationCanvas);
+}
+
+// Polarization Controls
+$('#polarRodTypeSelect').onchange = drawPolarizationCanvas;
+$('#polarDistSlider').oninput = drawPolarizationCanvas;
+$('#polarMaterialSelect').onchange = drawPolarizationCanvas;
+
+// Window Resize Handling
+function resizeCanvases() {
+  setupCanvas(sphereCanvas);
+  setupCanvas(polarCanvas);
+}
+window.addEventListener('resize', resizeCanvases);
+
+// On Window Load
+window.onload = function() {
+  resizeCanvases();
+  setGuidedStep(1);
+  drawSphereCanvas();
+  drawPolarizationCanvas();
+};
+</script>
+</body>
+</html>
