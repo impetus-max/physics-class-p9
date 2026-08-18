@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>전류에 의한 자기장 3D 스튜디오 (Three.js)</title>
+
+<!-- Three.js 및 컨트롤 모듈 불러오기 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<!-- MathJax for TextBook Equations -->
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
+    svg: { fontCache: 'global' }
+  };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+  :root {
+    --ink: #0f172a;
+    --bg-main: #f1f5f9;
+    --card-bg: #ffffff;
+    --blue: #3b82f6;
+    --blue-dark: #2563eb;
+    --green: #10b981;
+    --line: #e2e8f0;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: var(--bg-main);
+    color: var(--ink);
+    line-height: 1.5;
+    user-select: none;
+    overflow-x: hidden;
+  }
+
+  header {
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--line);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    position: sticky; top: 0; z-index: 50;
+  }
+
+  .header-container {
+    max-width: 1400px; margin: 0 auto; padding: 16px 20px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+
+  .header-title { display: flex; align-items: center; justify-content: space-between; }
+  .header-title h1 { font-size: 1.4rem; font-weight: 800; color: #1e293b; letter-spacing: -0.5px; }
+
+  .badge {
+    background: #dbeafe; color: #1d4ed8; padding: 4px 10px; border-radius: 20px;
+    font-size: 0.8rem; font-weight: 700; display: flex; align-items: center; gap: 4px;
+  }
+
+  nav {
+    display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px;
+  }
+  nav::-webkit-scrollbar { display: none; }
+
+  nav button {
+    white-space: nowrap; border: 1.5px solid var(--line); border-radius: 8px;
+    background: #ffffff; padding: 10px 20px; font-size: 1rem; font-weight: 700;
+    color: #64748b; cursor: pointer; transition: all 0.2s ease;
+  }
+  nav button:hover { background: #f8fafc; color: var(--ink); border-color: #cbd5e1; }
+  nav button.active {
+    background: var(--blue-dark); border-color: var(--blue-dark); color: #ffffff;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+  }
+
+  main { 
+    max-width: 1400px; margin: 0 auto; padding: 20px; 
+    display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 20px;
+  }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+
+  .controls-panel {
+    background: var(--card-bg); border-radius: 16px; padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: 1px solid var(--line);
+    display: flex; flex-direction: column; gap: 20px;
+    height: fit-content;
+  }
+
+  .control-group {
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .control-group label { font-size: 0.95rem; font-weight: 700; color: #334155; display: flex; justify-content: space-between; align-items: center;}
+  .val-badge { background: #f1f5f9; padding: 4px 10px; border-radius: 6px; color: var(--blue-dark); }
+  .control-group input[type="range"] { width: 100%; accent-color: var(--blue-dark); cursor: pointer; }
+
+  .btn-group { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .btn {
+    border: 1px solid transparent; border-radius: 8px; padding: 10px; font-size: 0.95rem; font-weight: 700;
+    cursor: pointer; transition: all 0.2s; text-align: center; background: #f1f5f9; color: #475569;
+  }
+  .btn.active { background: #e0e7ff; color: #4338ca; border-color: #a5b4fc; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
+
+  .formula-box {
+    background: #1e293b; color: #f8fafc; padding: 15px; border-radius: 12px;
+    text-align: center; position: relative; border-left: 4px solid #38bdf8;
+  }
+  .formula-label { font-size: 0.8rem; color: #94a3b8; font-weight: bold; margin-bottom: 5px; text-align: left; }
+  .formula-math { font-size: 1.2rem; color: #e2e8f0; }
+
+  .info-box { font-size: 0.9rem; color: #475569; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; }
+
+  .canvas-container {
+    display: flex; flex-direction: column; gap: 16px;
+  }
+
+  .canvas-wrapper {
+    position: relative; width: 100%; height: 500px; background: #000;
+    border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    border: 1px solid #334155;
+  }
+  #three-canvas { width: 100%; height: 100%; display: block; outline: none; }
+  
+  .canvas-hint {
+    position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.75); color: #fff; padding: 8px 16px;
+    border-radius: 20px; font-size: 0.85rem; font-weight: 600; pointer-events: none;
+    backdrop-filter: blur(4px); display: flex; align-items: center; gap: 6px; z-index: 10;
+  }
+
+  .sensor-dashboard {
+    background: #1e293b; border-radius: 16px; padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 12px;
+  }
+  .sensor-header { color: #94a3b8; font-size: 0.9rem; font-weight: bold; display: flex; justify-content: space-between;}
+  .sensor-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; text-align: center; }
+  @media (max-width: 600px) { .sensor-grid { grid-template-columns: repeat(2, 1fr); } }
+
+  .sensor-card { background: #0f172a; padding: 12px; border-radius: 10px; border: 1px solid #334155; }
+  .sensor-label { font-size: 0.85rem; color: #64748b; margin-bottom: 4px; }
+  .sensor-val { font-size: 1.4rem; font-weight: 900; color: #f8fafc; font-family: monospace; }
+  .val-mag { color: #34d399; text-shadow: 0 0 10px rgba(52, 211, 153, 0.3); }
+
+  .mode-specific { display: none; }
+  .mode-specific.active { display: flex; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-container">
+    <div class="header-title">
+      <h1>🧲 전류와 자기장 3D 스튜디오 (심화)</h1>
+      <div class="badge">💡 정밀 물리엔진 탑재</div>
+    </div>
+    <nav id="topNav">
+      <button data-mode="wire" class="active">📏 직선 도선</button>
+      <button data-mode="coil">⭕ 원형 도선</button>
+      <button data-mode="solenoid">🌀 솔레노이드</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <!-- 좌측 조작 패널 -->
+  <aside class="controls-panel">
+    <div class="control-group">
+      <label>전류 방향</label>
+      <div class="btn-group">
+        <button id="btnDirPos" class="btn active">정방향 (+)</button>
+        <button id="btnDirNeg" class="btn">역방향 (-)</button>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label>전류 세기 (I) <span class="val-badge" id="valI">5.0 A</span></label>
+      <input type="range" id="sliderI" min="1" max="10" step="0.5" value="5.0">
+    </div>
+
+    <div class="control-group mode-specific" id="uiSolenoidN">
+      <label>코일 감은 수 (N) <span class="val-badge" id="valN">12 회</span></label>
+      <input type="range" id="sliderN" min="4" max="24" step="2" value="12">
+    </div>
+
+    <div class="formula-box">
+      <div class="formula-label" id="formulaTitle">앙페르 법칙 (직선 도선)</div>
+      <div class="formula-math" id="formulaMath">
+        $$ B = \frac{\mu_0 I}{2 \pi r} $$
+      </div>
+    </div>
+
+    <div class="info-box">
+      <p id="infoText">💡 <b>오른나사 법칙:</b> 오른손 엄지를 전류 방향으로 향할 때, 네 손가락이 감싸는 방향으로 자기장이 형성됩니다.</p>
+    </div>
+  </aside>
+
+  <!-- 우측 3D 캔버스 & 센서 데이터 -->
+  <div class="canvas-container">
+    <div class="canvas-wrapper">
+      <div class="canvas-hint">👆 화면을 드래그하여 시점을 회전하고, 🟡 검출기를 마우스로 움직여보세요!</div>
+      <canvas id="three-canvas"></canvas>
+    </div>
+    
+    <div class="sensor-dashboard">
+      <div class="sensor-header">
+        <span>자기장 검출기(Probe) 데이터</span>
+        <span style="color:#38bdf8;">단위: µT (마이크로테슬라)</span>
+      </div>
+      <div class="sensor-grid">
+        <div class="sensor-card">
+          <div class="sensor-label">X축 성분 (Bx)</div>
+          <div class="sensor-val" id="outBx">0.0</div>
+        </div>
+        <div class="sensor-card">
+          <div class="sensor-label">Y축 성분 (By)</div>
+          <div class="sensor-val" id="outBy">0.0</div>
+        </div>
+        <div class="sensor-card">
+          <div class="sensor-label">Z축 성분 (Bz)</div>
+          <div class="sensor-val" id="outBz">0.0</div>
+        </div>
+        <div class="sensor-card" style="border-color: #059669; box-shadow: 0 0 10px rgba(5, 150, 105, 0.2) inset;">
+          <div class="sensor-label" style="color: #34d399;">자기장 세기 |B|</div>
+          <div class="sensor-val val-mag" id="outBm">0.0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const state = {
+  mode: 'wire',
+  dir: 1,      
+  I: 5.0,
+  N: 12         
+};
+
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+
+const canvas = $('#three-canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#0f172a'); 
+scene.fog = new THREE.FogExp2('#0f172a', 0.001);
+
+const camera = new THREE.PerspectiveCamera(45, canvas.clientWidth / canvas.clientHeight, 1, 3000);
+camera.position.set(250, 200, 250);
+
+const orbitControls = new THREE.OrbitControls(camera, renderer.domElement);
+orbitControls.enableDamping = true;
+orbitControls.dampingFactor = 0.05;
+
+// 조명 설정
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+scene.add(ambientLight);
+
+const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+dirLight.position.set(100, 200, 50);
+dirLight.castShadow = true;
+scene.add(dirLight);
+
+// 바닥 그리드 및 축
+const gridHelper = new THREE.GridHelper(800, 40, 0x334155, 0x1e293b);
+gridHelper.position.y = -50;
+scene.add(gridHelper);
+
+const axesHelper = new THREE.AxesHelper(150);
+axesHelper.position.y = -49;
+scene.add(axesHelper);
+
+// ==========================================
+// 검출기 (점 + 진한 녹색 화살표) 구성
+// ==========================================
+const probeGroup = new THREE.Group();
+
+// 1. 검출기 점 (노란색 구슬)
+const probeGeo = new THREE.SphereGeometry(5, 32, 32);
+const probeMat = new THREE.MeshStandardMaterial({ 
+  color: 0xfacc15, roughness: 0.3, metalness: 0.7 
+});
+const probeMesh = new THREE.Mesh(probeGeo, probeMat);
+probeMesh.castShadow = true;
+probeGroup.add(probeMesh);
+
+// 2. 자기장 벡터 화살표 (진한 녹색)
+const bArrowHelper = new THREE.ArrowHelper(
+  new THREE.Vector3(1, 0, 0),
+  new THREE.Vector3(0, 0, 0),
+  20,
+  0x065f46, // 진한 녹색 (Dark Green)
+  8, 5
+);
+probeGroup.add(bArrowHelper);
+
+// 보이지 않는 드래그 판정용 HitBox (클릭 영역을 넓히기 위해)
+const hitBoxGeo = new THREE.SphereGeometry(20, 16, 16);
+const hitBoxMat = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false });
+const hitBoxMesh = new THREE.Mesh(hitBoxGeo, hitBoxMat);
+probeGroup.add(hitBoxMesh);
+
+probeGroup.position.set(60, 0, 60); // 초기 위치
+scene.add(probeGroup);
+
+// ==========================================
+// 커스텀 레이캐스터 드래그 로직 (수평면 이동)
+// ==========================================
+let dragPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+let raycaster = new THREE.Raycaster();
+let mouse = new THREE.Vector2();
+let isDraggingProbe = false;
+let dragOffset = new THREE.Vector3();
+
+renderer.domElement.addEventListener('pointerdown', (e) => {
+  const rect = renderer.domElement.getBoundingClientRect();
+  mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+  // hitBoxMesh를 대상으로 클릭 판정
+  const intersects = raycaster.intersectObject(hitBoxMesh);
+
+  if (intersects.length > 0) {
+    isDraggingProbe = true;
+    orbitControls.enabled = false; // 드래그 중 카메라 회전 방지
+    // 현재 검출기의 Y 위치(0)를 지나는 수평 평면 설정
+    dragPlane.setComponents(0, 1, 0, -probeGroup.position.y);
+    const intersectPoint = new THREE.Vector3();
+    raycaster.ray.intersectPlane(dragPlane, intersectPoint);
+    // 클릭한 위치와 검출기 중심의 차이 계산
+    dragOffset.copy(intersectPoint).sub(probeGroup.position);
+  }
+});
+
+renderer.domElement.addEventListener('pointermove', (e) => {
+  if (!isDraggingProbe) return;
+  const rect = renderer.domElement.getBoundingClientRect();
+  mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+  const intersectPoint = new THREE.Vector3();
+  raycaster.ray.intersectPlane(dragPlane, intersectPoint);
+  
+  if (intersectPoint) {
+    // 오프셋을 빼서 이동 시 덜컹거림 방지
+    probeGroup.position.copy(intersectPoint.sub(dragOffset));
+  }
+});
+
+renderer.domElement.addEventListener('pointerup', () => {
+  isDraggingProbe = false;
+  orbitControls.enabled = true;
+});
+
+
+// ==========================================
+// 자기장 계산 함수
+// ==========================================
+function calculateMagneticField(px, py, pz) {
+  const { mode, I, dir, N } = state;
+  let bx = 0, by = 0, bz = 0;
+  
+  if (mode === 'wire') {
+    // 직선 도선 (Y축)
+    const r2 = px*px + pz*pz;
+    if(r2 > 1) { 
+      const B_mag = (I * 200) / Math.sqrt(r2); 
+      // 오른나사 법칙
+      const direction = new THREE.Vector3(pz, 0, -px).normalize();
+      bx = dir * B_mag * direction.x;
+      by = 0;
+      bz = dir * B_mag * direction.z;
+    }
+  } 
+  else if (mode === 'coil' || mode === 'solenoid') {
+    // 원형/솔레노이드 코일
+    const R = mode === 'coil' ? 60 : 40;
+    const numCoils = mode === 'coil' ? 1 : N;
+    const L = 160;
+    const startX = numCoils > 1 ? -L/2 : 0;
+    const stepX = numCoils > 1 ? L/(numCoils-1) : 0;
+    const dTh = Math.PI / 36; 
+    
+    for(let n=0; n<numCoils; n++) {
+      let cx = startX + n*stepX;
+      for(let th=0; th < Math.PI*2; th+=dTh) {
+        let wy = R*Math.cos(th);
+        let wz = R*Math.sin(th);
+        
+        let dlx = 0;
+        let dly = -R*Math.sin(th)*dTh * dir;
+        let dlz = R*Math.cos(th)*dTh * dir;
+        
+        let rx = px - cx, ry = py - wy, rz = pz - wz;
+        let r3 = Math.pow(rx*rx + ry*ry + rz*rz, 1.5);
+        if(r3 < 10) r3 = 10; 
+        
+        bx += (dly*rz - dlz*ry) / r3;
+        by += (dlz*rx - dlx*rz) / r3;
+        bz += (dlx*ry - dly*rx) / r3;
+      }
+    }
+    const scale = mode === 'coil' ? I * 250 : I * 150; 
+    bx *= scale; by *= scale; bz *= scale;
+  }
+  
+  return new THREE.Vector3(bx, by, bz);
+}
+
+// 런게-쿠타 4계(RK4)를 이용한 사실적인 자기력선 궤적 계산기
+function computeFieldLinePath(startPoint, steps=250, stepSize=2, forward=true) {
+    const path = [startPoint.clone()];
+    let currentPos = startPoint.clone();
+    const sign = forward ? 1 : -1;
+
+    for(let i=0; i<steps; i++) {
+        let B1 = calculateMagneticField(currentPos.x, currentPos.y, currentPos.z);
+        if(B1.lengthSq() < 1e-6) break;
+        const k1 = B1.normalize().multiplyScalar(sign);
+        
+        const p2 = currentPos.clone().add(k1.clone().multiplyScalar(stepSize * 0.5));
+        let B2 = calculateMagneticField(p2.x, p2.y, p2.z);
+        const k2 = B2.normalize().multiplyScalar(sign);
+        
+        const p3 = currentPos.clone().add(k2.clone().multiplyScalar(stepSize * 0.5));
+        let B3 = calculateMagneticField(p3.x, p3.y, p3.z);
+        const k3 = B3.normalize().multiplyScalar(sign);
+        
+        const p4 = currentPos.clone().add(k3.clone().multiplyScalar(stepSize));
+        let B4 = calculateMagneticField(p4.x, p4.y, p4.z);
+        const k4 = B4.normalize().multiplyScalar(sign);
+        
+        const moveVec = k1.add(k2.multiplyScalar(2)).add(k3.multiplyScalar(2)).add(k4).multiplyScalar(stepSize / 6);
+        currentPos.add(moveVec);
+        
+        // 도선 너무 근접 시 계산 중단
+        const { mode } = state;
+        if(mode === 'wire' && (currentPos.x*currentPos.x + currentPos.z*currentPos.z < 25)) break;
+        if(mode === 'coil' && (Math.abs(currentPos.x) < 5 && Math.abs(Math.sqrt(currentPos.y*currentPos.y + currentPos.z*currentPos.z) - 60) < 5)) break;
+        if(mode === 'solenoid' && Math.abs(currentPos.x) < 80 && Math.abs(Math.sqrt(currentPos.y*currentPos.y + currentPos.z*currentPos.z) - 40) < 5) break;
+
+        path.push(currentPos.clone());
+    }
+    return path;
+}
+
+// ==========================================
+// 씬 재구성 및 시뮬레이션 오브젝트
+// ==========================================
+const simGroup = new THREE.Group(); 
+scene.add(simGroup);
+
+let currentParticles = [];      
+let currentMagParticles = [];   
+
+const copperMat = new THREE.MeshStandardMaterial({ color: 0xb45309, metalness: 0.7, roughness: 0.2 });
+
+class SolenoidCurve extends THREE.Curve {
+  constructor(radius, length, coils) {
+    super();
+    this.radius = radius;
+    this.length = length;
+    this.coils = coils;
+  }
+  getPoint(t, optionalTarget = new THREE.Vector3()) {
+    const x = -this.length / 2 + t * this.length;
+    const theta = t * this.coils * Math.PI * 2;
+    const y = this.radius * Math.cos(theta); 
+    const z = this.radius * Math.sin(theta);
+    return optionalTarget.set(x, y, z);
+  }
+}
+
+function rebuildScene() {
+  while(simGroup.children.length > 0){ 
+      simGroup.remove(simGroup.children[0]); 
+  }
+  currentParticles = [];
+  currentMagParticles = [];
+
+  const { mode, N, dir } = state;
+
+  // 정지된 전류 표시 입체 화살표 생성 함수 (원기둥+원뿔 형태)
+  const arrowBodyGeo = new THREE.CylinderGeometry(1.5, 1.5, 8, 16);
+  const arrowHeadGeo = new THREE.ConeGeometry(4, 8, 16);
+  const currentMat = new THREE.MeshBasicMaterial({color: 0xef4444}); 
+
+  function createCurrentArrow(position, direction) {
+    const group = new THREE.Group();
+    const body = new THREE.Mesh(arrowBodyGeo, currentMat);
+    body.position.y = 4;
+    const head = new THREE.Mesh(arrowHeadGeo, currentMat);
+    head.position.y = 12;
+    group.add(body);
+    group.add(head);
+    
+    // Z축 방향을 바라보도록 회전 (lookAt을 위해)
+    group.rotation.x = Math.PI / 2;
+    
+    const wrapper = new THREE.Group();
+    wrapper.position.copy(position);
+    wrapper.add(group);
+    wrapper.lookAt(position.clone().add(direction));
+    return wrapper;
+  }
+
+  if (mode === 'wire') {
+    const wireGeo = new THREE.CylinderGeometry(4, 4, 600, 32);
+    const wire = new THREE.Mesh(wireGeo, copperMat);
+    wire.castShadow = true;
+    simGroup.add(wire);
+
+    // 도선 위 정지된 빨간색 화살표 배치
+    const arrowDir = new THREE.Vector3(0, dir, 0);
+    for(let y = -240; y <= 240; y += 80) {
+       const pos = new THREE.Vector3(7, y, 0); // 도선 바깥으로 살짝 띄움
+       const arrow = createCurrentArrow(pos, arrowDir);
+       simGroup.add(arrow);
+    }
+
+    // 자기력선
+    for(let r = 30; r <= 150; r += 30) {
+      const orbitGeo = new THREE.TorusGeometry(r, 0.4, 8, 128);
+      const orbit = new THREE.Mesh(orbitGeo, new THREE.MeshBasicMaterial({color: 0x38bdf8, transparent: true, opacity: 0.4}));
+      orbit.rotation.x = Math.PI / 2;
+      simGroup.add(orbit);
+
+      for(let a=0; a<6; a++) {
+        const arr = new THREE.ArrowHelper(new THREE.Vector3(1,0,0), new THREE.Vector3(), 10, 0x38bdf8, 4, 3);
+        arr.userData = { radius: r, angle: a * (Math.PI/3) };
+        simGroup.add(arr);
+        currentMagParticles.push({ type:'wire', obj: arr });
+      }
+    }
+
+  } else if (mode === 'coil') {
+    const R = 60;
+    const coilGeo = new THREE.TorusGeometry(R, 4, 32, 128);
+    const coil = new THREE.Mesh(coilGeo, copperMat);
+    coil.rotation.y = Math.PI / 2;
+    coil.castShadow = true;
+    simGroup.add(coil);
+
+    // 도선 위 정지된 빨간색 화살표 배치
+    for(let i=0; i<8; i++) {
+      const angle = (i / 8) * Math.PI * 2;
+      const y = R * Math.cos(angle);
+      const z = R * Math.sin(angle);
+      const pos = new THREE.Vector3(7, y, z); // X축(오른쪽)으로 살짝 띄움
+      
+      const tgtDir = new THREE.Vector3(
+          0, 
+          (dir > 0 ? -Math.sin(angle) : Math.sin(angle)), 
+          (dir > 0 ? Math.cos(angle) : -Math.cos(angle))
+      ).normalize();
+      
+      const arrow = createCurrentArrow(pos, tgtDir);
+      simGroup.add(arrow);
+    }
+
+    // 대학 수준 쌍극자 자기력선
+    const seedPoints = [];
+    for(let rOffset = 10; rOffset <= 50; rOffset += 15) {
+        seedPoints.push(new THREE.Vector3(0, rOffset, 0));
+        seedPoints.push(new THREE.Vector3(0, -rOffset, 0));
+        seedPoints.push(new THREE.Vector3(0, R + rOffset, 0));
+        seedPoints.push(new THREE.Vector3(0, -(R + rOffset), 0));
+    }
+
+    seedPoints.forEach(seed => {
+        let fPath = computeFieldLinePath(seed, 200, 3, true);
+        let bPath = computeFieldLinePath(seed, 200, 3, false);
+        bPath.reverse();
+        let pathPts = [...bPath, ...fPath.slice(1)]; 
+        
+        if(pathPts.length > 5) {
+            const curve = new THREE.CatmullRomCurve3(pathPts);
+            const tubeGeo = new THREE.TubeGeometry(curve, 100, 0.4, 8, false);
+            const tube = new THREE.Mesh(tubeGeo, new THREE.MeshBasicMaterial({color: 0x38bdf8, transparent: true, opacity: 0.4}));
+            simGroup.add(tube);
+            
+            for(let i=0; i<2; i++){
+                const arr = new THREE.ArrowHelper(new THREE.Vector3(1,0,0), new THREE.Vector3(), 12, 0x38bdf8, 5, 4);
+                arr.userData = { curve: curve, t: Math.random() };
+                simGroup.add(arr);
+                currentMagParticles.push({ type:'path', obj: arr });
+            }
+        }
+    });
+
+  } else if (mode === 'solenoid') {
+    const R = 40;
+    const L = 160;
+    const path = new SolenoidCurve(R, L, N);
+    const solGeo = new THREE.TubeGeometry(path, N*30, 3, 16, false);
+    const sol = new THREE.Mesh(solGeo, copperMat);
+    sol.castShadow = true;
+    simGroup.add(sol);
+
+    // 솔레노이드 표면 정지된 빨간색 화살표 배치
+    const d_t = 0.005;
+    for(let i=0; i<N*3; i++) {
+      const t = i / (N*3);
+      const pos = path.getPoint(t);
+      
+      let next_t = t + (dir > 0 ? d_t : -d_t);
+      if (next_t > 1) next_t = 1;
+      if (next_t < 0) next_t = 0;
+      
+      const nextPos = path.getPoint(next_t);
+      const tgtDir = nextPos.clone().sub(pos).normalize();
+      
+      // 도선 바깥쪽으로 살짝 띄우기 (Y, Z 평면 기준 방사방향)
+      const outDir = new THREE.Vector3(0, pos.y, pos.z).normalize().multiplyScalar(6);
+      pos.add(outDir);
+
+      const arrow = createCurrentArrow(pos, tgtDir);
+      simGroup.add(arrow);
+    }
+
+    // 솔레노이드 자기력선
+    const seedPoints = [];
+    for(let r = 0; r <= R-10; r += 15) {
+        seedPoints.push(new THREE.Vector3(0, r, 0));
+        seedPoints.push(new THREE.Vector3(0, -r, 0));
+    }
+    for(let rOffset = 5; rOffset <= 25; rOffset += 10) {
+        seedPoints.push(new THREE.Vector3(L/2, R+rOffset, 0));
+        seedPoints.push(new THREE.Vector3(L/2, -(R+rOffset), 0));
+    }
+
+    seedPoints.forEach(seed => {
+        let fPath = computeFieldLinePath(seed, 250, 3, true);
+        let bPath = computeFieldLinePath(seed, 250, 3, false);
+        bPath.reverse();
+        let pathPts = [...bPath, ...fPath.slice(1)];
+        
+        if(pathPts.length > 5) {
+            const curve = new THREE.CatmullRomCurve3(pathPts);
+            const tubeGeo = new THREE.TubeGeometry(curve, 150, 0.4, 8, false);
+            const tube = new THREE.Mesh(tubeGeo, new THREE.MeshBasicMaterial({color: 0x38bdf8, transparent: true, opacity: 0.3}));
+            simGroup.add(tube);
+            
+            for(let i=0; i<3; i++){
+                const arr = new THREE.ArrowHelper(new THREE.Vector3(1,0,0), new THREE.Vector3(), 12, 0x38bdf8, 5, 4);
+                arr.userData = { curve: curve, t: i/3 };
+                simGroup.add(arr);
+                currentMagParticles.push({ type:'path', obj: arr });
+            }
+        }
+    });
+  }
+}
+
+const clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+  const delta = clock.getDelta();
+
+  orbitControls.update();
+
+  // 1. 검출기 위치 자기장 계산
+  const probePos = probeGroup.position;
+  const B = calculateMagneticField(probePos.x, probePos.y, probePos.z);
+  const B_mag = B.length();
+
+  if(B_mag > 0.1) {
+    const bNormal = B.clone().normalize();
+    
+    // 진한 녹색 화살표 방향 및 길이 업데이트
+    bArrowHelper.setDirection(bNormal);
+    // 자기장 세기에 비례하여 화살표 길이 조정 (최소 15, 최대 100으로 제한)
+    const arrowLen = Math.min(Math.max(B_mag * 0.4, 15), 100);
+    bArrowHelper.setLength(arrowLen, arrowLen * 0.3, arrowLen * 0.2);
+    bArrowHelper.visible = true;
+  } else {
+    bArrowHelper.visible = false;
+  }
+
+  // HTML UI 업데이트
+  $('#outBx').textContent = B.x.toFixed(1);
+  $('#outBy').textContent = B.y.toFixed(1);
+  $('#outBz').textContent = B.z.toFixed(1);
+  $('#outBm').textContent = B_mag.toFixed(1);
+
+  // 2. 자기력선 애니메이션 (파란색 화살표)
+  const speed = state.dir * (state.I * 0.2); 
+  const absSpeed = Math.abs(speed);
+  
+  if (state.mode === 'wire') {
+    // 자기력선 궤도 화살표
+    currentMagParticles.forEach(item => {
+      const arr = item.obj;
+      arr.userData.angle += speed * 0.05; 
+      const r = arr.userData.radius;
+      const x = r * Math.sin(arr.userData.angle);
+      const z = r * Math.cos(arr.userData.angle);
+      arr.position.set(x, 0, z);
+      
+      const bField = calculateMagneticField(x, 0, z);
+      arr.setDirection(bField.normalize());
+    });
+
+  } else if (state.mode === 'coil' || state.mode === 'solenoid') {
+    // 자기력선 위를 타고 흐르는 화살표 애니메이션
+    currentMagParticles.forEach(item => {
+        const arr = item.obj;
+        arr.userData.t += 0.002 * absSpeed;
+        if(arr.userData.t > 1) arr.userData.t -= 1;
+        
+        const curve = arr.userData.curve;
+        const pos = curve.getPointAt(arr.userData.t);
+        arr.position.copy(pos);
+        
+        const bField = calculateMagneticField(pos.x, pos.y, pos.z);
+        if(bField.lengthSq() > 0.01) {
+            arr.setDirection(bField.normalize());
+            arr.visible = true;
+        } else {
+            arr.visible = false;
+        }
+    });
+  }
+
+  renderer.render(scene, camera);
+}
+
+$$('#topNav button').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    $$('#topNav button').forEach(b => b.classList.remove('active'));
+    e.target.classList.add('active');
+    state.mode = e.target.dataset.mode;
+    
+    if(state.mode === 'solenoid') {
+      $('#uiSolenoidN').classList.add('active');
+      $('#formulaTitle').textContent = "앙페르 법칙 (솔레노이드 내부)";
+      $('#formulaMath').innerHTML = "$$ B = \\mu_0 n I $$";
+      $('#infoText').innerHTML = "💡 내부에 균일하고 강한 자기장이 형성되며, 오른손을 코일이 감기는 방향으로 감싸 쥐면 엄지가 N극(자기장 방향)을 가리킵니다.";
+    } else if(state.mode === 'coil') {
+      $('#uiSolenoidN').classList.remove('active');
+      $('#formulaTitle').textContent = "비오-사바르 법칙 (원형 도선 중심)";
+      $('#formulaMath').innerHTML = "$$ B = \\frac{\\mu_0 I}{2 R} $$";
+      $('#infoText').innerHTML = "💡 중심부에서는 직선 형태의 자기장이 나타나고, 도선에 가까워질수록 도선을 감싸는 쌍극자(Dipole) 곡선 형태가 됩니다.";
+    } else {
+      $('#uiSolenoidN').classList.remove('active');
+      $('#formulaTitle').textContent = "앙페르 법칙 (직선 도선)";
+      $('#formulaMath').innerHTML = "$$ B = \\frac{\\mu_0 I}{2 \\pi r} $$";
+      $('#infoText').innerHTML = "💡 <b>오른나사 법칙:</b> 오른손 엄지를 전류 방향으로 향할 때, 네 손가락이 감싸는 방향으로 자기장이 형성됩니다.";
+    }
+    
+    if(window.MathJax && window.MathJax.typesetPromise) {
+      window.MathJax.typesetPromise([$('#formulaMath')]).catch((err) => console.log(err.message));
+    }
+    
+    rebuildScene();
+  });
+});
+
+$('#btnDirPos').addEventListener('click', (e) => {
+  state.dir = 1;
+  e.target.classList.add('active');
+  $('#btnDirNeg').classList.remove('active');
+});
+$('#btnDirNeg').addEventListener('click', (e) => {
+  state.dir = -1;
+  e.target.classList.add('active');
+  $('#btnDirPos').classList.remove('active');
+});
+
+$('#sliderI').addEventListener('input', (e) => {
+  state.I = parseFloat(e.target.value);
+  $('#valI').textContent = state.I.toFixed(1) + ' A';
+});
+
+$('#sliderN').addEventListener('input', (e) => {
+  state.N = parseInt(e.target.value);
+  $('#valN').textContent = state.N + ' 회';
+  if(state.mode === 'solenoid') rebuildScene(); 
+});
+
+window.addEventListener('resize', () => {
+  camera.aspect = canvas.clientWidth / canvas.clientHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+});
+
+// 시작
+rebuildScene();
+animate();
+</script>
+</body>
+</html>
