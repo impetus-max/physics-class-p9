@@ -1,638 +1,1031 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>2026학년도 전자기와 양자</title>
-
-  <script>
-    window.MathJax = {
-      tex: {
-        inlineMath: [['\\(', '\\)'], ['$', '$']],
-        displayMath: [['\\[', '\\]'], ['$$', '$$']]
-      },
-      svg: {
-        fontCache: 'global'
-      }
-    };
-  </script>
-  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#07111f" />
+  <meta name="description" content="전자기와 양자 물리학 웹앱 모음" />
+  <title>전자기와 양자 | Physics Web Lab</title>
 
   <style>
-    :root{
-      --bg:#f7fbff;
-      --surface:#ffffff;
-      --surface-soft:#eef8ff;
-      --text:#16324f;
-      --muted:#60758c;
-      --line:#d9eaf5;
-      --blue:#2389da;
-      --blue-dark:#1269b0;
-      --cyan:#52c7d9;
-      --yellow:#ffd166;
-      --shadow:0 18px 50px rgba(39,104,145,.14);
+    :root {
+      --bg: #06101d;
+      --bg-soft: #0a1727;
+      --surface: rgba(14, 31, 50, 0.72);
+      --surface-strong: rgba(20, 42, 66, 0.92);
+      --line: rgba(161, 205, 255, 0.16);
+      --line-bright: rgba(116, 224, 255, 0.36);
+      --text: #f5fbff;
+      --muted: #9db2c9;
+      --cyan: #55e6ff;
+      --blue: #6b86ff;
+      --violet: #a978ff;
+      --lime: #b6ff8a;
+      --orange: #ffbd6c;
+      --danger: #ff7c9f;
+      --radius-lg: 28px;
+      --radius-md: 20px;
+      --radius-sm: 13px;
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.34);
+      --max-width: 1240px;
     }
-    *{box-sizing:border-box}
-    html{scroll-behavior:smooth}
-    body{
-      margin:0;
-      font-family:'Pretendard','Noto Sans KR',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-      font-size:18px;
-      line-height:1.65;
-      color:var(--text);
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      color-scheme: dark;
+    }
+
+    body {
+      margin: 0;
+      min-width: 320px;
       background:
-        radial-gradient(circle at 8% 8%, rgba(255,209,102,.34), transparent 24rem),
-        radial-gradient(circle at 92% 15%, rgba(82,199,217,.24), transparent 28rem),
-        linear-gradient(180deg,#fafdff 0%,#f4fbff 50%,#fffdf7 100%);
-      min-height:100vh;
-    }
-    a{color:inherit}
-    button,input{font:inherit}
-    .wrap{max-width:1100px;margin:0 auto;padding:22px 20px 64px}
-
-    header{
-      display:flex;align-items:center;justify-content:space-between;gap:18px;
-      padding:12px 0 22px;margin-bottom:24px;
-    }
-    .brand{display:flex;align-items:center;gap:12px;font-weight:900;letter-spacing:-.03em}
-    .brand-mark{
-      width:44px;height:44px;border-radius:15px;display:grid;place-items:center;
-      background:linear-gradient(135deg,var(--yellow),#fff1ad);
-      box-shadow:0 10px 25px rgba(255,190,57,.28);font-size:23px
-    }
-    nav{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
-    nav a{
-      padding:11px 16px;border-radius:999px;text-decoration:none;font-weight:800;font-size:.92rem;
-      background:rgba(255,255,255,.82);border:1px solid var(--line);
-      box-shadow:0 8px 22px rgba(38,112,158,.08);transition:.2s
-    }
-    nav a:hover{transform:translateY(-2px);border-color:#9ed5ef}
-    nav .seat-link{background:var(--text);color:white;border-color:var(--text)}
-    nav .sim-link{
-      background:linear-gradient(135deg,var(--blue),var(--cyan));
-      color:white;border:none;box-shadow:0 12px 26px rgba(35,137,218,.25)
+        radial-gradient(circle at 12% 8%, rgba(85, 230, 255, 0.12), transparent 30%),
+        radial-gradient(circle at 86% 10%, rgba(169, 120, 255, 0.16), transparent 32%),
+        radial-gradient(circle at 45% 82%, rgba(107, 134, 255, 0.10), transparent 36%),
+        var(--bg);
+      color: var(--text);
+      font-family: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.6;
+      overflow-x: hidden;
     }
 
-    .hero-banner{
-      position:relative;overflow:hidden;background:rgba(255,255,255,.8);
-      border:1px solid rgba(190,224,240,.8);border-radius:34px;padding:30px;
-      box-shadow:var(--shadow);margin-bottom:28px
-    }
-    .main-title-banner{text-align:center}
-    .main-title-banner img{
-      width:100%;max-width:780px;height:auto;display:block;margin:0 auto;
-      filter:drop-shadow(0 16px 22px rgba(34,104,150,.12))
-    }
-
-    .clock-container{text-align:center;margin:30px 0 34px}
-    .clock-date{font-size:1.15rem;color:var(--blue-dark);font-weight:800;margin-bottom:4px}
-    .clock-time{
-      font-size:4.35rem;font-weight:900;line-height:1;letter-spacing:-.06em;
-      font-variant-numeric:tabular-nums;color:var(--text)
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.35;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 54px 54px;
+      mask-image: linear-gradient(to bottom, black, transparent 82%);
+      z-index: -2;
     }
 
-    .hero{display:grid;gap:24px}
-    .card{
-      background:rgba(255,255,255,.92);border:1px solid var(--line);
-      border-radius:26px;padding:28px;box-shadow:var(--shadow)
-    }
-    .card-title-row{
-      display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:18px
-    }
-    h2{margin:0;font-size:1.42rem;letter-spacing:-.025em;display:flex;align-items:center;gap:10px}
-    h3{margin:0 0 10px;font-size:1.08rem}
-    p{margin:0;color:var(--muted)}
+    a { color: inherit; }
+    button, input { font: inherit; }
+    button { color: inherit; }
 
-    .btn{
-      display:inline-flex;align-items:center;justify-content:center;gap:8px;
-      padding:14px 18px;border-radius:15px;border:1px solid var(--line);
-      background:white;color:var(--text);font-weight:850;text-decoration:none;cursor:pointer;transition:.2s
+    .skip-link {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      z-index: 999;
+      transform: translateY(-150%);
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: #fff;
+      color: #08111e;
+      font-weight: 800;
+      text-decoration: none;
+      transition: transform 0.2s ease;
     }
-    .btn:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(31,112,160,.13)}
-    .btn-seating{
-      width:100%;background:linear-gradient(135deg,#263f5f,#162d48);
-      color:white;border:none;font-size:1.05rem;box-shadow:0 12px 28px rgba(22,50,79,.22)
-    }
+    .skip-link:focus { transform: translateY(0); }
 
-    .classroom-intro{
-      background:linear-gradient(135deg,#eff9ff,#f5fffb);
-      border:1px solid #cdeaf4;padding:22px;border-radius:20px;margin-bottom:20px
-    }
-    .classGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
-    .class-btn{
-      position:relative;overflow:hidden;padding:20px;border:1px solid var(--line);
-      border-radius:19px;background:white;text-align:left;cursor:pointer;transition:.22s;
-      box-shadow:0 8px 20px rgba(32,110,155,.07)
-    }
-    .class-btn::after{
-      content:"↗";position:absolute;right:18px;top:18px;font-weight:900;color:var(--blue)
-    }
-    .class-btn:hover{
-      transform:translateY(-3px);border-color:#9cd8ee;box-shadow:0 15px 30px rgba(32,110,155,.13)
-    }
-    .class-btn b{display:block;font-size:1.16rem;color:var(--text);margin-bottom:4px}
-    .class-btn small{color:var(--muted);font-weight:700}
-    .class-btn.unset{background:linear-gradient(145deg,#fff,#f8fcff)}
-    .class-btn.unset::before{
-      content:"링크 입력 대기";display:inline-block;margin-top:12px;padding:5px 9px;
-      border-radius:999px;background:#fff4d4;color:#926700;font-size:.72rem;font-weight:900
+    .shell {
+      width: min(calc(100% - 40px), var(--max-width));
+      margin: 0 auto;
     }
 
-    .postList{display:flex;flex-direction:column;gap:12px}
-    .post{
-      display:flex;gap:14px;padding:17px;background:#f8fcff;border:1px solid #e1eff6;border-radius:17px
-    }
-    .post-num{
-      flex:0 0 34px;width:34px;height:34px;border-radius:12px;display:grid;place-items:center;
-      background:var(--yellow);color:#6f5100;font-weight:900;font-size:.86rem
-    }
-    .post-content{flex:1;min-width:0}
-    .post-head{display:flex;justify-content:space-between;gap:12px;margin-bottom:5px}
-    .post-title{font-weight:900;color:var(--text)}
-    .post-date{font-size:.82rem;color:var(--muted);white-space:nowrap}
-    .post-body{font-size:.95rem;color:var(--muted);white-space:pre-wrap}
-
-    .seat-card{background:linear-gradient(135deg,#f6fbff,#fffaf0)}
-    .seat-card-inner{display:grid;grid-template-columns:1fr auto;align-items:center;gap:22px}
-    .seat-icon{
-      width:92px;height:92px;border-radius:25px;display:grid;place-items:center;
-      background:linear-gradient(135deg,var(--yellow),#ffec9a);font-size:42px;
-      box-shadow:0 14px 28px rgba(245,180,54,.2)
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: linear-gradient(to bottom, rgba(6,16,29,0.94), rgba(6,16,29,0.7));
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
     }
 
-    .toast{
-      position:fixed;left:50%;bottom:28px;transform:translate(-50%,30px);
-      background:#16324f;color:#fff;padding:13px 22px;border-radius:999px;opacity:0;
-      pointer-events:none;transition:.25s;z-index:9999;font-weight:800;
-      box-shadow:0 12px 35px rgba(0,0,0,.2)
-    }
-    .toast.show{opacity:1;transform:translate(-50%,0)}
-
-    .agent-fab{
-      position:fixed;right:24px;bottom:24px;width:80px;height:80px;border:none;border-radius:50%;
-      background:linear-gradient(135deg,#10263d,#1f4d78);color:#fff;font-size:34px;font-weight:900;
-      box-shadow:0 18px 35px rgba(16,38,61,.35);cursor:pointer;z-index:10000;transition:.2s
-    }
-    .agent-fab:hover{transform:translateY(-2px)}
-
-    .agent-panel{
-      position:fixed;top:0;right:-430px;width:410px;max-width:95vw;height:100vh;background:#16324f;
-      box-shadow:-18px 0 50px rgba(9,24,39,.32);z-index:10001;transition:right .28s ease;
-      display:flex;flex-direction:column;border-left:1px solid #2f5274
-    }
-    .agent-panel.open{right:0}
-
-    .agent-header{
-      display:flex;justify-content:space-between;align-items:flex-start;gap:14px;
-      padding:18px 18px 14px;border-bottom:1px solid #2f5274;background:#10263d
+    .nav {
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
     }
 
-    .agent-title-badge{
-      display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border-radius:999px;
-      background:rgba(255,255,255,.12);color:#ffffff;font-size:.82rem;font-weight:900;
-      letter-spacing:-.01em;margin-bottom:8px;
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      font-weight: 850;
+      letter-spacing: -0.03em;
     }
 
-    .agent-title{font-size:1rem;font-weight:900;color:#ffffff}
-    .agent-sub{font-size:.78rem;color:#bcd0e4;margin-top:4px}
-
-    .agent-header-actions{display:flex;align-items:center;gap:8px}
-    .agent-pdf-btn{
-      border:none;background:#2a78b8;color:#fff;min-width:52px;height:38px;
-      border-radius:12px;font-weight:900;cursor:pointer;
-    }
-    .agent-close{
-      border:none;background:rgba(255,255,255,.1);color:#fff;width:38px;height:38px;
-      border-radius:12px;box-shadow:none;cursor:pointer
+    .brand-mark {
+      position: relative;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 1px solid rgba(104, 231, 255, 0.62);
+      box-shadow: inset 0 0 20px rgba(85,230,255,0.18), 0 0 20px rgba(85,230,255,0.1);
     }
 
-    .agent-messages{
-      flex:1;overflow-y:auto;padding:16px;background:linear-gradient(180deg,#16324f 0%,#1b3b5c 100%);
-      display:flex;flex-direction:column;gap:12px
+    .brand-mark::before,
+    .brand-mark::after {
+      content: "";
+      position: absolute;
+      inset: 8px 3px;
+      border: 1px solid rgba(170, 128, 255, 0.8);
+      border-radius: 50%;
+      transform: rotate(55deg);
+    }
+    .brand-mark::after { transform: rotate(-55deg); }
+
+    .brand-dot {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--cyan);
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 16px var(--cyan);
     }
 
-    .agent-msg{
-      max-width:92%;
-      padding:11px 13px;
-      border-radius:18px;
-      line-height:1.5;
-      white-space:normal;
-      box-shadow:0 8px 20px rgba(8,22,36,.18);
-      font-size:14px;
-      overflow-x:auto;
-      overflow-y:hidden;
+    .nav-links {
+      display: flex;
+      gap: 8px;
+      align-items: center;
     }
 
-    .agent-msg.bot{
-      background:#f4f9ff;
-      border:1px solid #d7e6f5;
-      color:#16324f;
-      align-self:flex-start
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.92rem;
+      font-weight: 700;
+      padding: 9px 13px;
+      border-radius: 999px;
+      transition: 0.2s ease;
+    }
+    .nav-links a:hover,
+    .nav-links a:focus-visible {
+      color: var(--text);
+      background: rgba(255,255,255,0.07);
+      outline: none;
     }
 
-    .agent-msg.user{
-      background:linear-gradient(135deg,#2a78b8,#52c7d9);
-      color:#fff;
-      align-self:flex-end
+    .hero {
+      position: relative;
+      min-height: 660px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+      align-items: center;
+      gap: 54px;
+      padding: 80px 0 60px;
     }
 
-    .agent-msg p{margin:0 0 10px;color:inherit}
-    .agent-msg p:last-child{margin-bottom:0}
+    .hero-copy { position: relative; z-index: 3; }
 
-    .agent-msg mjx-container{
-      margin:.35em 0 !important;
-      max-width:none !important;
-    }
-
-    .agent-msg mjx-container[display="true"]{
-      display:block;
-      overflow-x:auto;
-      overflow-y:hidden;
-      padding-bottom:4px;
-    }
-
-    .agent-msg svg{
-      max-width:none !important;
-      height:auto !important;
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 22px;
+      padding: 8px 12px;
+      border: 1px solid rgba(85,230,255,0.22);
+      border-radius: 999px;
+      background: rgba(85,230,255,0.07);
+      color: #c9f7ff;
+      font-size: 0.8rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
 
-    .agent-msg pre{
-      background:#0f2236;color:#eef6ff;padding:12px 14px;border-radius:12px;
-      overflow:auto;font-size:.84rem;line-height:1.5;
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--lime);
+      box-shadow: 0 0 12px var(--lime);
+      animation: pulse 2s infinite;
     }
 
-    .agent-msg code{
-      font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+    @keyframes pulse {
+      0%, 100% { transform: scale(0.82); opacity: 0.72; }
+      50% { transform: scale(1.18); opacity: 1; }
     }
 
-    .agent-quick{
-      display:flex;gap:8px;flex-wrap:wrap;padding:14px 16px 10px;background:#16324f;border-top:1px solid #2f5274
-    }
-    .quick-btn{
-      border:1px solid #426787;background:#224261;color:#eef6ff;padding:8px 11px;
-      border-radius:999px;font-size:.78rem;font-weight:800;cursor:pointer
-    }
-
-    .agent-input{
-      display:flex;gap:10px;padding:12px 16px 18px;background:#10263d;border-top:1px solid #2f5274
-    }
-    .agent-input input{
-      flex:1;min-height:48px;border:1px solid #426787;border-radius:15px;padding:0 14px;
-      background:#183552;color:#eef6ff;font-size:14px;
-    }
-    .agent-input input::placeholder{color:#a9bfd4}
-    .agent-input button{
-      border:none;border-radius:15px;background:linear-gradient(135deg,#2a78b8,#52c7d9);
-      color:#fff;font-weight:900;padding:0 16px;min-width:74px;cursor:pointer;font-size:14px;
+    h1 {
+      margin: 0;
+      max-width: 800px;
+      font-size: clamp(3.2rem, 7vw, 6.8rem);
+      line-height: 0.98;
+      letter-spacing: -0.075em;
+      font-weight: 900;
     }
 
-    footer{margin-top:52px;text-align:center;color:var(--muted);font-size:.84rem}
+    .gradient-text {
+      display: block;
+      background: linear-gradient(100deg, #f7fcff 2%, var(--cyan) 37%, #a6b4ff 65%, #d4a8ff 100%);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      padding-right: 0.08em;
+    }
 
-    @media(max-width:720px){
-      body{font-size:17px}
-      .wrap{padding:14px 14px 48px}
-      header{align-items:flex-start;flex-direction:column}
-      .brand{width:100%}
-      nav{width:100%;justify-content:flex-start}
-      nav a{flex:1;text-align:center;padding:10px 12px}
-      .hero-banner{padding:20px 14px;border-radius:25px}
-      .clock-time{font-size:3.25rem}
-      .classGrid{grid-template-columns:1fr}
-      .card{padding:21px;border-radius:22px}
-      .seat-card-inner{grid-template-columns:1fr}
-      .seat-icon{display:none}
-      .post-head{flex-direction:column;gap:2px}
-      .post-date{white-space:normal}
-      .agent-panel{width:100%;max-width:100%;right:-100%}
-      .agent-fab{right:18px;bottom:18px;width:68px;height:68px;font-size:30px}
-      .agent-msg{max-width:96%}
+    .hero-description {
+      max-width: 670px;
+      margin: 28px 0 0;
+      color: #b6c7d9;
+      font-size: clamp(1rem, 1.7vw, 1.18rem);
+      letter-spacing: -0.02em;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 34px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 50px;
+      padding: 0 20px;
+      border: 0;
+      border-radius: 14px;
+      font-weight: 850;
+      text-decoration: none;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+
+    .button:hover { transform: translateY(-2px); }
+    .button:focus-visible { outline: 3px solid rgba(85,230,255,0.4); outline-offset: 3px; }
+
+    .button-primary {
+      background: linear-gradient(135deg, #54e7ff, #7b88ff 58%, #b37bff);
+      color: #05101c;
+      box-shadow: 0 14px 36px rgba(92, 190, 255, 0.22);
+    }
+
+    .button-secondary {
+      background: rgba(255,255,255,0.07);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .hero-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 22px;
+      margin-top: 42px;
+    }
+
+    .stat {
+      min-width: 108px;
+    }
+    .stat strong {
+      display: block;
+      font-size: 1.5rem;
+      line-height: 1;
+      letter-spacing: -0.04em;
+    }
+    .stat span {
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .physics-visual {
+      position: relative;
+      min-height: 520px;
+      isolation: isolate;
+    }
+
+    .visual-glow {
+      position: absolute;
+      inset: 8% 0 0 10%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(80,220,255,0.23), rgba(113,104,255,0.09) 42%, transparent 70%);
+      filter: blur(10px);
+      animation: float 7s ease-in-out infinite;
+      z-index: -1;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-15px) scale(1.03); }
+    }
+
+    .orbit-system {
+      position: absolute;
+      inset: 12% 0 4% 0;
+      display: grid;
+      place-items: center;
+      transform: rotate(-6deg);
+    }
+
+    .core {
+      position: absolute;
+      width: 118px;
+      height: 118px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 32% 25%, #fff 0 4%, #8ff4ff 11%, #5869ff 48%, #19194b 100%);
+      box-shadow:
+        0 0 36px rgba(85,230,255,0.76),
+        0 0 90px rgba(103,117,255,0.38),
+        inset -18px -20px 34px rgba(13,9,55,0.42);
+      animation: coreBreath 4s ease-in-out infinite;
+    }
+
+    @keyframes coreBreath {
+      0%,100% { transform: scale(0.96); }
+      50% { transform: scale(1.04); }
+    }
+
+    .orbit {
+      position: absolute;
+      border: 1px solid rgba(148, 226, 255, 0.28);
+      border-radius: 50%;
+      box-shadow: inset 0 0 30px rgba(117,160,255,0.04);
+    }
+    .orbit::after {
+      content: "";
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 0 16px var(--cyan), 0 0 30px var(--cyan);
+    }
+
+    .orbit-1 { width: 250px; height: 420px; transform: rotate(62deg); animation: spin1 15s linear infinite; }
+    .orbit-1::after { top: 48%; left: -5px; }
+    .orbit-2 { width: 410px; height: 250px; transform: rotate(28deg); animation: spin2 19s linear infinite; }
+    .orbit-2::after { top: -5px; left: 52%; background: #c89cff; box-shadow: 0 0 18px #b278ff; }
+    .orbit-3 { width: 360px; height: 360px; transform: rotate(-18deg); animation: spin1 26s linear infinite reverse; opacity: 0.62; }
+    .orbit-3::after { bottom: 7%; right: 8%; background: var(--lime); box-shadow: 0 0 16px var(--lime); }
+
+    @keyframes spin1 { to { transform: rotate(422deg); } }
+    @keyframes spin2 { to { transform: rotate(-332deg); } }
+
+    .field-card {
+      position: absolute;
+      padding: 13px 15px;
+      border-radius: 15px;
+      background: rgba(10, 26, 43, 0.68);
+      border: 1px solid rgba(180,220,255,0.13);
+      backdrop-filter: blur(13px);
+      box-shadow: 0 16px 50px rgba(0,0,0,0.25);
+      color: #dcecff;
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .field-card span { display: block; color: var(--muted); font-size: 0.68rem; font-weight: 650; }
+    .field-a { top: 14%; left: 0; }
+    .field-b { right: 0; top: 45%; }
+    .field-c { left: 12%; bottom: 4%; }
+
+    main { position: relative; }
+
+    .catalog-section {
+      padding: 42px 0 110px;
+      scroll-margin-top: 90px;
+    }
+
+    .section-heading {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 28px;
+      margin-bottom: 28px;
+    }
+
+    .section-heading h2 {
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 3.5rem);
+      line-height: 1.05;
+      letter-spacing: -0.055em;
+    }
+
+    .section-heading p {
+      max-width: 570px;
+      margin: 10px 0 0;
+      color: var(--muted);
+    }
+
+    .catalog-tools {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin: 24px 0 30px;
+      padding: 12px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.035);
+      border: 1px solid rgba(255,255,255,0.07);
+    }
+
+    .unit-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .filter-button {
+      min-height: 40px;
+      padding: 0 14px;
+      border-radius: 11px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .filter-button[aria-pressed="true"] {
+      color: var(--text);
+      background: rgba(255,255,255,0.09);
+      border-color: rgba(255,255,255,0.08);
+    }
+    .filter-button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
+    .search-wrap {
+      position: relative;
+      flex: 1 1 260px;
+      max-width: 370px;
+    }
+
+    .search-wrap svg {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #8ba5be;
+      pointer-events: none;
+    }
+
+    #searchInput {
+      width: 100%;
+      height: 42px;
+      padding: 0 14px 0 42px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.09);
+      background: rgba(5,15,27,0.62);
+      color: var(--text);
+      outline: none;
+    }
+    #searchInput:focus { border-color: rgba(85,230,255,0.55); box-shadow: 0 0 0 4px rgba(85,230,255,0.08); }
+    #searchInput::placeholder { color: #7890a7; }
+
+    .unit-block {
+      margin-top: 36px;
+    }
+
+    .unit-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .unit-index {
+      width: 43px;
+      height: 43px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 14px;
+      background: rgba(255,255,255,0.055);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-weight: 850;
+    }
+
+    .unit-header h3 {
+      margin: 0;
+      font-size: clamp(1.25rem, 2vw, 1.65rem);
+      letter-spacing: -0.035em;
+    }
+
+    .unit-header p {
+      margin: 1px 0 0;
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
+    .app-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 15px;
+    }
+
+    .app-card {
+      position: relative;
+      min-height: 228px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.055), rgba(255,255,255,0.016)),
+        var(--surface);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+      transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .app-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 80% 10%, var(--card-glow, rgba(85,230,255,0.15)), transparent 40%);
+      pointer-events: none;
+    }
+
+    .app-card:hover {
+      transform: translateY(-5px);
+      border-color: var(--line-bright);
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.078), rgba(255,255,255,0.02)),
+        var(--surface-strong);
+      box-shadow: 0 24px 58px rgba(0,0,0,0.25);
+    }
+
+    .app-card[data-status="missing"] { opacity: 0.68; }
+    .app-card[data-status="missing"]:hover { transform: none; border-color: var(--line); }
+
+    .card-link {
+      position: relative;
+      z-index: 2;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 21px;
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .app-card[data-status="missing"] .card-link {
+      cursor: default;
+      pointer-events: none;
+    }
+
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .file-code {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: #d8e8f6;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .file-code::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--card-accent, var(--cyan));
+      box-shadow: 0 0 12px var(--card-accent, var(--cyan));
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 8px;
+      border-radius: 999px;
+      background: rgba(182,255,138,0.08);
+      color: #ceffb4;
+      border: 1px solid rgba(182,255,138,0.17);
+      font-size: 0.68rem;
+      font-weight: 850;
+      white-space: nowrap;
+    }
+    .app-card[data-status="checking"] .status-badge {
+      color: #c0d0e0;
+      background: rgba(255,255,255,0.055);
+      border-color: rgba(255,255,255,0.08);
+    }
+    .app-card[data-status="missing"] .status-badge {
+      color: #a9b7c5;
+      background: rgba(255,255,255,0.045);
+      border-color: rgba(255,255,255,0.07);
+    }
+
+    .app-title {
+      margin: auto 0 7px;
+      padding-top: 30px;
+      font-size: 1.26rem;
+      line-height: 1.28;
+      letter-spacing: -0.035em;
+    }
+
+    .app-description {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
+    .card-footer {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 0 21px 18px;
+      color: #aebfd1;
+      font-size: 0.75rem;
+      font-weight: 750;
+    }
+
+    .open-icon {
+      width: 33px;
+      height: 33px;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.07);
+      transition: 0.2s ease;
+    }
+    .app-card:hover .open-icon { background: rgba(85,230,255,0.13); transform: translate(2px,-2px); }
+    .app-card[data-status="missing"] .open-icon { display: none; }
+
+    .empty-state {
+      display: none;
+      padding: 34px;
+      border: 1px dashed rgba(255,255,255,0.15);
+      border-radius: 18px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    footer {
+      padding: 28px 0 42px;
+      border-top: 1px solid rgba(255,255,255,0.07);
+      color: #8196aa;
+      font-size: 0.78rem;
+    }
+
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .reduced-motion-note { display: none; }
+
+    @media (max-width: 980px) {
+      .hero {
+        grid-template-columns: 1fr;
+        min-height: auto;
+        gap: 12px;
+        padding-top: 62px;
+      }
+      .physics-visual { min-height: 430px; }
+      .app-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 680px) {
+      .shell { width: min(calc(100% - 24px), var(--max-width)); }
+      .nav { min-height: 64px; }
+      .nav-links a:not(:last-child) { display: none; }
+      .hero { padding-top: 48px; }
+      h1 { font-size: clamp(3rem, 16vw, 5.2rem); }
+      .hero-description { font-size: 0.98rem; }
+      .physics-visual { min-height: 350px; transform: scale(0.92); margin: -12px -20px 0; }
+      .field-card { font-size: 0.69rem; }
+      .section-heading { display: block; }
+      .catalog-tools { align-items: stretch; }
+      .search-wrap { max-width: none; }
+      .app-grid { grid-template-columns: 1fr; }
+      .footer-inner { align-items: flex-start; flex-direction: column; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+      }
+      .reduced-motion-note { display: block; }
     }
   </style>
 </head>
+
 <body>
-  <div class="wrap">
-    <header>
-      <div class="brand"><span class="brand-mark">⚛️</span><span>2026학년도 전자기와 양자</span></div>
-      <nav>
-        <a href="#classroom">구글 클래스룸</a>
-        <a href="https://d38cbyzokrtur2.cloudfront.net" target="_blank" rel="noopener noreferrer" class="sim-link">시뮬레이션</a>
-        <a href="seating_system.html" target="_blank" class="seat-link">좌석 배치 시스템 →</a>
+  <a class="skip-link" href="#catalog">웹앱 목록으로 바로가기</a>
+
+  <header class="site-header">
+    <div class="shell nav">
+      <a class="brand" href="#top" aria-label="전자기와 양자 홈">
+        <span class="brand-mark" aria-hidden="true"><span class="brand-dot"></span></span>
+        <span>Physics Web Lab</span>
+      </a>
+      <nav class="nav-links" aria-label="주요 메뉴">
+        <a href="#catalog">학습 시작 →</a>
       </nav>
-    </header>
+    </div>
+  </header>
 
-    <main>
-      <section class="hero-banner">
-        <div class="main-title-banner">
-          <img src="111.png" alt="2026학년도 2학기 동북고등학교 전자기와 양자">
+  <div id="top" class="shell">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <div class="eyebrow"><span class="live-dot"></span> Interactive Physics Collection</div>
+        <h1 id="hero-title">전자기와<br><span class="gradient-text">양자</span></h1>
+        <p class="hero-description">
+          보이지 않는 전기장부터 미시 세계의 양자 현상까지. 교과서의 핵심 개념을 직접 조작하고 관찰하며 이해하는 물리학 웹 실험실입니다.
+        </p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="#catalog">웹앱 둘러보기 <span aria-hidden="true">↘</span></a>
+          <button class="button button-secondary" id="continueButton" type="button">최근 학습 이어가기</button>
         </div>
-      </section>
-
-      <div class="clock-container">
-        <div class="clock-date" id="clockDate"></div>
-        <div class="clock-time" id="clockTime">00:00:00</div>
+        <div class="hero-stats" aria-label="웹앱 통계">
+          <div class="stat"><strong>3</strong><span>대단원</span></div>
+          <div class="stat"><strong>17</strong><span>소단원</span></div>
+          <div class="stat"><strong id="availableCount">–</strong><span>사용 가능한 웹앱</span></div>
+        </div>
       </div>
 
-      <section class="hero">
-        <div class="card">
-          <div class="card-title-row">
-            <h2>📢 공지사항</h2>
-            <button class="btn" id="refreshNoticeBtn">새로고침</button>
-          </div>
-          <div class="postList" id="postList">
-            <div style="padding:20px;text-align:center;color:var(--muted)">공지사항을 불러오는 중...</div>
-          </div>
+      <div class="physics-visual" aria-hidden="true">
+        <div class="visual-glow"></div>
+        <div class="orbit-system">
+          <div class="orbit orbit-1"></div>
+          <div class="orbit orbit-2"></div>
+          <div class="orbit orbit-3"></div>
+          <div class="core"></div>
         </div>
-
-        <div class="card" id="classroom">
-          <div class="card-title-row"><h2>🎓 구글 클래스룸 이동반 접속</h2></div>
-          <div class="classroom-intro"><h3>이동반을 선택하세요.</h3></div>
-          <div class="classGrid">
-            <button class="class-btn unset" data-class="A"><b>전자기와 양자 A반</b><small>월요일 2교시 / 수요일 5교시 / 목요일 1교시</small></button>
-            <button class="class-btn unset" data-class="C"><b>전자기와 양자 C반</b><small>화요일 3교시 / 수요일 1교시 / 금요일 4교시</small></button>
-            <button class="class-btn unset" data-class="D"><b>전자기와 양자 D반</b><small>월요일 5교시 / 수요일 2교시 / 목요일 5교시</small></button>
-            <button class="class-btn unset" data-class="E"><b>전자기와 양자 E반</b><small>월요일 6교시 / 화요일 2교시 / 목요일 2교시</small></button>
-          </div>
-        </div>
-
-        <div class="card seat-card">
-          <div class="seat-card-inner">
-            <div>
-              <h2>🪑 좌석 배치 시스템</h2>
-              <p style="margin:10px 0 20px">원하는 좌석을 클릭하면 게임이 시작됩니다.</p>
-              <a class="btn btn-seating" href="seating_system.html" target="_blank">좌석 배치 시스템 열기</a>
-            </div>
-            <div class="seat-icon">🧑‍🔬</div>
-          </div>
-        </div>
-      </section>
-
-      <footer>© <span id="year"></span> 변재윤. All rights reserved.</footer>
-    </main>
+        <div class="field-card field-a">E = F/q<span>전기장 · Electric field</span></div>
+        <div class="field-card field-b">λ = h/p<span>물질파 · Matter wave</span></div>
+        <div class="field-card field-c">ΔxΔp ≥ ℏ/2<span>불확정성 · Quantum limit</span></div>
+      </div>
+    </section>
   </div>
 
-  <div class="toast" id="toast">알림</div>
-
-  <button id="agentFab" class="agent-fab" aria-label="학습 도우미 열기">🤖</button>
-
-  <aside id="agentPanel" class="agent-panel" aria-hidden="true">
-    <div class="agent-header">
-      <div>
-        <div class="agent-title-badge">학습도우미</div>
-        <div class="agent-title">전자기와 양자 AI 튜터</div>
-        <div class="agent-sub">개념 설명 · 문제 힌트 · 오답 피드백 · LaTeX 수식 표시</div>
+  <main id="catalog">
+    <section class="shell catalog-section" aria-labelledby="catalog-title">
+      <div class="section-heading">
+        <div>
+          <h2 id="catalog-title">교과서 탐험하기</h2>
+        </div>
       </div>
-      <div class="agent-header-actions">
-        <button id="downloadPdfBtn" class="agent-pdf-btn" aria-label="대화 PDF 저장">PDF</button>
-        <button id="agentClose" class="agent-close" aria-label="학습 도우미 닫기">✕</button>
+
+      <div class="catalog-tools" aria-label="웹앱 필터 및 검색">
+        <div class="unit-filters" role="group" aria-label="대단원 필터">
+          <button class="filter-button" type="button" data-filter="all" aria-pressed="true">전체</button>
+          <button class="filter-button" type="button" data-filter="1" aria-pressed="false">Ⅰ. 전자기적 상호작용</button>
+          <button class="filter-button" type="button" data-filter="2" aria-pressed="false">Ⅱ. 빛과 정보 통신</button>
+          <button class="filter-button" type="button" data-filter="3" aria-pressed="false">Ⅲ. 양자와 미시 세계</button>
+        </div>
+        <label class="search-wrap">
+          <span class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">웹앱 검색</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+          <input id="searchInput" type="search" placeholder="전기장, 편광, 터널 효과 검색" autocomplete="off" />
+        </label>
       </div>
-    </div>
 
-    <div id="agentMessages" class="agent-messages">
-      <div class="agent-msg bot"><p>안녕하세요. 전자기와 양자 학습도우미입니다.<br>개념 설명, 문제 풀이 힌트, 오답 분석을 도와드릴게요.<br><br>수식은 예를 들어 \( F = ma \), \[ v = v_0 + at \] 처럼 표시할 수 있습니다.</p></div>
-    </div>
+      <div id="unitsContainer"></div>
+      <div id="emptyState" class="empty-state">검색 조건에 맞는 소단원이 없습니다.</div>
+    </section>
 
-    <div class="agent-quick">
-      <button class="quick-btn" data-prompt="전자기 유도 핵심 개념을 수식과 함께 설명해줘">개념 설명</button>
-      <button class="quick-btn" data-prompt="이 단원에서 자주 하는 실수를 수식과 함께 알려줘">오답 피드백</button>
-      <button class="quick-btn" data-prompt="서술형 문제 2개를 만들고 풀이에 필요한 수식도 LaTeX로 보여줘">문항 생성</button>
-    </div>
+  </main>
 
-    <form id="agentForm" class="agent-input">
-      <input id="agentText" type="text" placeholder="질문을 입력하세요" />
-      <button type="submit">전송</button>
-    </form>
-  </aside>
+  <footer>
+    <div class="shell footer-inner">
+      <span>전자기와 양자 · Physics Web Lab</span>
+      <span>ⓒ 2026 변재윤, ALL rights reserved.</span>
+    </div>
+  </footer>
 
   <script>
-    const CLASSROOM_LINKS = {
-      A: "https://classroom.google.com/c/ODcxNDk5NzA5NTAy?cjc=oocv7uap",
-      C: "https://classroom.google.com/c/ODcxNTU4ODE2NTM5?cjc=pzh3kf5z",
-      D: "https://classroom.google.com/c/ODU1NzM3MzIzNTQ4?cjc=ycfmehba",
-      E: "https://classroom.google.com/c/ODcxNTYwMDI3MDgx?cjc=exvyj32t"
+    /**
+     * 웹앱 목록 설정
+     * - 같은 폴더에 아래 파일명을 업로드하면 자동으로 활성화됩니다.
+     * - 제목이나 설명을 바꾸려면 이 배열만 수정하세요.
+     */
+    const curriculum = [
+      {
+        unit: 1,
+        roman: "Ⅰ",
+        title: "전자기적 상호작용",
+        subtitle: "전하, 장, 힘과 회로를 연결하는 거시 세계의 법칙",
+        accent: "#55e6ff",
+        glow: "rgba(85,230,255,0.18)",
+        items: [
+          { file: "11.html", no: "01", title: "전기장", description: "전하 주위에 형성되는 전기장의 세기와 방향을 탐구합니다." },
+          { file: "12.html", no: "02", title: "정전기 유도와 유전 분극", description: "도체와 유전체 내부에서 전하가 재배치되는 과정을 관찰합니다." },
+          { file: "13.html", no: "03", title: "전류에 의한 자기장", description: "전류가 만드는 자기장의 방향과 세기 변화를 확인합니다." },
+          { file: "14.html", no: "04", title: "로런츠 힘", description: "전기장과 자기장 속에서 하전 입자가 받는 힘을 분석합니다." },
+          { file: "15.html", no: "05", title: "전자기 유도", description: "자기 선속의 변화가 유도 전류를 만드는 원리를 실험합니다." },
+          { file: "16.html", no: "06", title: "저항, 축전기, 인덕터", description: "회로 소자의 역할과 시간에 따른 전압·전류 변화를 비교합니다." },
+          { file: "17.html", no: "07", title: "현대 문명과 반도체", description: "반도체의 전기적 성질과 현대 전자 기술의 기초를 살펴봅니다." }
+        ]
+      },
+      {
+        unit: 2,
+        roman: "Ⅱ",
+        title: "빛과 정보 통신",
+        subtitle: "파동으로서의 빛과 정보를 전달하는 광학 기술",
+        accent: "#a978ff",
+        glow: "rgba(169,120,255,0.18)",
+        items: [
+          { file: "21.html", no: "01", title: "간섭과 회절", description: "빛의 중첩으로 나타나는 간섭무늬와 회절 현상을 탐구합니다." },
+          { file: "22.html", no: "02", title: "광학 기기의 원리", description: "렌즈와 전반사를 이용하는 다양한 광학 기기의 원리를 분석합니다." },
+          { file: "23.html", no: "03", title: "편광", description: "빛의 진동 방향과 편광판을 통과한 빛의 세기를 관찰합니다." },
+          { file: "24.html", no: "04", title: "광전 효과", description: "빛의 진동수와 광전자의 운동 에너지 사이의 관계를 확인합니다." },
+          { file: "25.html", no: "05", title: "레이저", description: "유도 방출과 빛의 증폭으로 레이저가 생성되는 과정을 이해합니다." }
+        ]
+      },
+      {
+        unit: 3,
+        roman: "Ⅲ",
+        title: "양자와 미시 세계",
+        subtitle: "고전적 직관을 넘어서는 입자와 파동의 미시 세계",
+        accent: "#b6ff8a",
+        glow: "rgba(182,255,138,0.14)",
+        items: [
+          { file: "31.html", no: "01", title: "입자-파동 이중성", description: "빛과 물질이 입자성과 파동성을 함께 나타내는 증거를 탐구합니다." },
+          { file: "32.html", no: "02", title: "양자 기술", description: "중첩과 얽힘 등 양자 현상이 기술에 활용되는 사례를 살펴봅니다." },
+          { file: "33.html", no: "03", title: "터널 효과", description: "입자가 고전적으로 넘을 수 없는 장벽을 통과하는 현상을 관찰합니다." },
+          { file: "34.html", no: "04", title: "불확정성 원리와 현대 원자 모형", description: "측정의 근본적 한계와 확률적 원자 모형을 연결해 이해합니다." },
+          { file: "35.html", no: "05", title: "별빛의 생성과 스펙트럼 분석", description: "별빛의 스펙트럼으로 천체의 성질과 원소 조성을 추론합니다." }
+        ]
+      }
+    ];
+
+    const state = {
+      filter: "all",
+      search: "",
+      availability: new Map()
     };
 
-    function updateClock(){
-      const now = new Date();
-      document.getElementById('clockDate').textContent =
-        now.toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric',weekday:'long'});
-      document.getElementById('clockTime').textContent =
-        now.toLocaleTimeString('ko-KR',{hour12:false});
-    }
-    setInterval(updateClock,1000);
-    updateClock();
-    document.getElementById('year').textContent = new Date().getFullYear();
+    const unitsContainer = document.getElementById("unitsContainer");
+    const emptyState = document.getElementById("emptyState");
+    const availableCount = document.getElementById("availableCount");
+    const searchInput = document.getElementById("searchInput");
+    const continueButton = document.getElementById("continueButton");
 
-    const NOTICE_API="https://script.google.com/macros/s/AKfycbxy2fOj6JJWrRHEvv686yNjYNvKup5ArN5dFGZZVBmQFZ7GzB76ylKTxn39se-fdXDQ/exec";
-    async function loadNotices(){
-      const list=document.getElementById('postList');
-      try{
-        const res=await fetch(NOTICE_API);
-        const data=await res.json();
-        const items=data.items||[];
-        if(!items.length){
-          list.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted)">공지사항이 없습니다.</div>';
-          return;
-        }
-        list.innerHTML=items.map((it,idx)=>`
-          <div class="post">
-            <div class="post-num">${items.length-idx}</div>
-            <div class="post-content">
-              <div class="post-head">
-                <span class="post-title">${it.title}</span>
-                <span class="post-date">${it.date}</span>
-              </div>
-              <div class="post-body">${it.content}</div>
-            </div>
-          </div>
-        `).join('');
-      }catch(e){
-        list.innerHTML='<div style="padding:20px;text-align:center;color:#c84a40">공지를 불러오지 못했습니다.</div>';
-      }
-    }
-    document.getElementById('refreshNoticeBtn').addEventListener('click',loadNotices);
-    loadNotices();
-
-    function showToast(message){
-      const t=document.getElementById('toast');
-      t.textContent=message;
-      t.classList.add('show');
-      setTimeout(()=>t.classList.remove('show'),2200);
+    function escapeHTML(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
     }
 
-    document.querySelectorAll('.class-btn').forEach(btn=>{
-      const key=btn.dataset.class;
-      const url=(CLASSROOM_LINKS[key]||'').trim();
-      if(url) btn.classList.remove('unset');
-      btn.addEventListener('click',()=>{
-        const target=(CLASSROOM_LINKS[key]||'').trim();
-        if(!target){
-          showToast(`전자기와 양자 ${key}반 클래스룸 링크를 먼저 입력하세요.`);
-          return;
-        }
-        window.open(target,'_blank','noopener,noreferrer');
-      });
-    });
-
-    const agentFab = document.getElementById('agentFab');
-    const agentPanel = document.getElementById('agentPanel');
-    const agentClose = document.getElementById('agentClose');
-    const agentForm = document.getElementById('agentForm');
-    const agentText = document.getElementById('agentText');
-    const agentMessages = document.getElementById('agentMessages');
-    const quickBtns = document.querySelectorAll('.quick-btn');
-    const downloadPdfBtn = document.getElementById('downloadPdfBtn');
-
-    function openAgent(){
-      agentPanel.classList.add('open');
-      agentPanel.setAttribute('aria-hidden','false');
+    function statusText(status) {
+      if (status === "available") return "학습 가능";
+      if (status === "missing") return "자료 준비 중";
+      return "확인 중";
     }
 
-    function closeAgent(){
-      agentPanel.classList.remove('open');
-      agentPanel.setAttribute('aria-hidden','true');
-    }
+    function render() {
+      const query = state.search.trim().toLowerCase();
+      let visibleCards = 0;
 
-    function escapeHtml(str){
-      return String(str)
-        .replace(/&/g,'&amp;')
-        .replace(/</g,'&lt;')
-        .replace(/>/g,'&gt;');
-    }
+      const html = curriculum.map((unit) => {
+        if (state.filter !== "all" && String(unit.unit) !== state.filter) return "";
 
-    function formatAgentMessage(text){
-      return escapeHtml(text)
-        .replace(/\n\n/g,'</p><p>')
-        .replace(/\n/g,'<br>');
-    }
-
-    function renderMathInElement(el){
-      if(window.MathJax && window.MathJax.typesetPromise){
-        MathJax.typesetClear([el]);
-        MathJax.typesetPromise([el]).catch(()=>{});
-      }
-    }
-
-    function addAgentMessage(text, role='bot', isTemporary=false){
-      const div = document.createElement('div');
-      div.className = `agent-msg ${role}`;
-      div.innerHTML = `<p>${formatAgentMessage(text)}</p>`;
-      if(isTemporary) div.dataset.temp = 'true';
-      agentMessages.appendChild(div);
-      agentMessages.scrollTop = agentMessages.scrollHeight;
-
-      if(role === 'bot'){
-        renderMathInElement(div);
-      }
-      return div;
-    }
-
-    async function askAgent(prompt){
-      addAgentMessage(prompt, 'user');
-      const loading = addAgentMessage('응답 생성 중입니다...', 'bot', true);
-
-      try{
-        const res = await fetch('./api/agent.php', {
-          method: 'POST',
-          headers: {'Content-Type':'application/json'},
-          body: JSON.stringify({ prompt })
+        const items = unit.items.filter((item) => {
+          const haystack = `${item.no} ${item.title} ${item.description} ${item.file}`.toLowerCase();
+          return !query || haystack.includes(query);
         });
 
-        const data = await res.json();
-        loading.remove();
+        if (!items.length) return "";
+        visibleCards += items.length;
 
-        if(!res.ok){
-          addAgentMessage(data.error || '에이전트 호출에 실패했습니다.', 'bot');
-          return;
-        }
+        const cards = items.map((item) => {
+          const status = state.availability.get(item.file) || "checking";
+          const safeTitle = escapeHTML(item.title);
+          const href = status === "missing" ? "#" : escapeHTML(item.file);
+          const tabIndex = status === "missing" ? '-1' : '0';
 
-        addAgentMessage(data.reply || '응답이 없습니다.', 'bot');
-      }catch(e){
-        loading.remove();
-        addAgentMessage('서버 연결 중 오류가 발생했습니다.', 'bot');
+          return `
+            <article class="app-card" data-unit="${unit.unit}" data-file="${escapeHTML(item.file)}" data-status="${status}"
+              style="--card-accent:${unit.accent}; --card-glow:${unit.glow}">
+              <a class="card-link" href="${href}" tabindex="${tabIndex}" aria-label="${safeTitle} 웹앱 열기">
+                <div class="card-top">
+                  <span class="status-badge">${statusText(status)}</span>
+                </div>
+                <h4 class="app-title">${escapeHTML(item.no)}. ${safeTitle}</h4>
+                <p class="app-description">${escapeHTML(item.description)}</p>
+              </a>
+              <div class="card-footer">
+                <span>${unit.roman}단원 · Interactive Web App</span>
+                <span class="open-icon" aria-hidden="true">↗</span>
+              </div>
+            </article>`;
+        }).join("");
+
+        return `
+          <section class="unit-block" aria-labelledby="unit-${unit.unit}-title">
+            <div class="unit-header">
+              <div class="unit-index" style="color:${unit.accent}">${unit.roman}</div>
+              <div>
+                <h3 id="unit-${unit.unit}-title">${unit.roman}. ${escapeHTML(unit.title)}</h3>
+                <p>${escapeHTML(unit.subtitle)}</p>
+              </div>
+            </div>
+            <div class="app-grid">${cards}</div>
+          </section>`;
+      }).join("");
+
+      unitsContainer.innerHTML = html;
+      emptyState.style.display = visibleCards ? "none" : "block";
+      bindCardTracking();
+    }
+
+    function bindCardTracking() {
+      document.querySelectorAll('.app-card[data-status="available"] .card-link').forEach((link) => {
+        link.addEventListener("click", () => {
+          const card = link.closest(".app-card");
+          localStorage.setItem("physicsLastApp", card.dataset.file);
+        });
+      });
+    }
+
+    async function fileExists(file) {
+      // file:// 로 직접 실행할 때는 브라우저 보안상 자동 검사가 불가능하므로 링크를 활성화합니다.
+      if (location.protocol === "file:") return true;
+
+      try {
+        const response = await fetch(file, {
+          method: "HEAD",
+          cache: "no-store",
+          redirect: "follow"
+        });
+
+        // AWS S3 웹사이트 엔드포인트는 없는 객체에 404를 반환하므로
+        // 응답 상태가 정상(2xx)인지로 파일 존재 여부를 판단합니다.
+        return response.ok;
+      } catch (error) {
+        console.warn(`${file} 확인 실패:`, error);
+        return false;
       }
     }
 
-    function downloadChatAsPdf(){
-      const renderedChatHtml = agentMessages.innerHTML;
-      const win = window.open('', '_blank', 'width=900,height=1000');
+    async function detectApps() {
+      const allItems = curriculum.flatMap((unit) => unit.items);
+      render();
 
-      if(!win){
-        showToast('팝업이 차단되었습니다. 팝업 허용 후 다시 시도하세요.');
-        return;
-      }
+      const results = await Promise.all(
+        allItems.map(async (item) => [item.file, await fileExists(item.file)])
+      );
 
-      win.document.open();
-      win.document.write(`
-        <!doctype html>
-        <html lang="ko">
-        <head>
-          <meta charset="utf-8">
-          <title>학습도우미 대화 내역</title>
-          <style>
-            body{
-              font-family:'Pretendard','Noto Sans KR',sans-serif;
-              margin:32px;
-              color:#16324f;
-              background:#fff;
-              line-height:1.65;
-            }
-            h1{margin:0 0 20px;font-size:24px}
-            .meta{margin-bottom:20px;color:#60758c;font-size:14px}
-            .agent-msg{
-              margin-bottom:14px;padding:14px 16px;border-radius:14px;border:1px solid #d9eaf5;
-              font-size:14px;page-break-inside:avoid;overflow-x:auto;overflow-y:hidden;
-            }
-            .agent-msg.user{background:#eef8ff}
-            .agent-msg.bot{background:#ffffff}
-            .agent-msg p{margin:0 0 10px}
-            .agent-msg p:last-child{margin-bottom:0}
-            mjx-container{margin:.4em 0 !important;max-width:none !important}
-            mjx-container[display="true"]{
-              display:block;overflow-x:auto;overflow-y:hidden;padding-bottom:4px;
-            }
-            svg{max-width:none !important;height:auto !important}
-            @media print{body{margin:18mm}}
-          </style>
-        </head>
-        <body>
-          <h1>학습도우미 대화 내역</h1>
-          <div class="meta">출력 시각: ${new Date().toLocaleString('ko-KR')}</div>
-          <div id="chatExport">${renderedChatHtml}</div>
-        </body>
-        </html>
-      `);
-      win.document.close();
+      results.forEach(([file, exists]) => {
+        state.availability.set(file, exists ? "available" : "missing");
+      });
 
-      setTimeout(() => {
-        win.focus();
-        win.print();
-      }, 1200);
+      const count = results.filter(([, exists]) => exists).length;
+      availableCount.textContent = String(count);
+      render();
+      updateContinueButton();
     }
 
-    agentFab.addEventListener('click', openAgent);
-    agentClose.addEventListener('click', closeAgent);
-    downloadPdfBtn.addEventListener('click', downloadChatAsPdf);
+    function updateContinueButton() {
+      const lastFile = localStorage.getItem("physicsLastApp");
+      const exists = lastFile && state.availability.get(lastFile) === "available";
+      continueButton.disabled = !exists;
+      continueButton.style.opacity = exists ? "1" : "0.55";
+      continueButton.title = exists ? `${lastFile} 열기` : "아직 최근 학습 기록이 없습니다.";
+    }
 
-    agentForm.addEventListener('submit', (e)=>{
-      e.preventDefault();
-      const prompt = agentText.value.trim();
-      if(!prompt) return;
-      agentText.value = '';
-      askAgent(prompt);
+    continueButton.addEventListener("click", () => {
+      const lastFile = localStorage.getItem("physicsLastApp");
+      if (lastFile && state.availability.get(lastFile) === "available") {
+        location.href = lastFile;
+      }
     });
 
-    quickBtns.forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        askAgent(btn.dataset.prompt);
+    document.querySelectorAll(".filter-button").forEach((button) => {
+      button.addEventListener("click", () => {
+        state.filter = button.dataset.filter;
+        document.querySelectorAll(".filter-button").forEach((item) => {
+          item.setAttribute("aria-pressed", String(item === button));
+        });
+        render();
       });
     });
 
-    window.addEventListener('load', ()=>{
-      const firstBot = document.querySelector('.agent-msg.bot');
-      if(firstBot){
-        renderMathInElement(firstBot);
-      }
+    searchInput.addEventListener("input", (event) => {
+      state.search = event.target.value;
+      render();
     });
+
+    detectApps();
   </script>
 </body>
 </html>
