@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>04. 로런츠 힘 3D 탐구 스튜디오</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
+    svg: { fontCache: 'global' }
+  };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+  :root {
+    --primary: #1e3a8a; --primary-light: #3b82f6; --bg-light: #f8fafc; --text-dark: #0f172a; --accent: #0ea5e9;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg-light); color: var(--text-dark); line-height: 1.6; overflow-x: hidden; }
+  
+  header { background-color: var(--primary); color: white; padding: 1.2rem; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+  header h1 { font-size: 1.5rem; font-weight: 800; }
+
+  nav { display: flex; overflow-x: auto; background-color: var(--primary-light); padding: 0.8rem; box-shadow: inset 0 -2px 5px rgba(0,0,0,0.1); gap: 8px; justify-content: center; }
+  nav::-webkit-scrollbar { display: none; }
+  nav button { 
+    background: rgba(255,255,255,0.1); border: 1px solid transparent; color: white; padding: 0.6rem 1.2rem; cursor: pointer; 
+    font-size: 0.95rem; font-weight: bold; border-radius: 8px; transition: all 0.2s; white-space: nowrap;
+  }
+  nav button:hover { background-color: rgba(255,255,255,0.2); }
+  nav button.active { background-color: #ffffff; color: var(--primary); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+  
+  main { max-width: 1200px; margin: 1.5rem auto; padding: 0 1rem; }
+  
+  .tab-content { display: none; animation: fadeIn 0.3s ease-out; background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+  .tab-content.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  h2 { border-bottom: 3px solid var(--primary-light); padding-bottom: 0.5rem; margin-bottom: 1rem; color: var(--primary); font-size: 1.3rem; }
+  p.desc { margin-bottom: 1.5rem; color: #475569; font-size: 0.95rem; }
+
+  .layout-grid { display: grid; grid-template-columns: 320px 1fr; gap: 20px; }
+  @media (max-width: 900px) { .layout-grid { grid-template-columns: 1fr; } }
+
+  .control-panel { background: #f8fafc; padding: 1.5rem; border-radius: 10px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 15px; }
+  .control-group { display: flex; flex-direction: column; gap: 6px; }
+  .control-group label { font-weight: 700; color: #334155; font-size: 0.9rem; }
+  select, input[type="range"] { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; outline: none; }
+  input[type="range"] { accent-color: var(--accent); cursor: pointer; padding: 0; }
+  
+  .btn-group { display: flex; gap: 10px; flex-direction: column; }
+  button.action-btn { 
+    background-color: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; padding: 0.8rem; 
+    border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.2s; text-align: center;
+  }
+  button.action-btn:hover { background-color: #e2e8f0; }
+  button.action-btn.active-btn { background-color: var(--primary-light); color: white; border-color: var(--primary-light); }
+
+  .canvas-wrapper { position: relative; width: 100%; height: 500px; background: #0f172a; border-radius: 10px; overflow: hidden; }
+  canvas { display: block; width: 100%; height: 100%; outline: none; }
+  
+  /* 모눈종이 탭 전용 오버레이 UI */
+  .overlay-ui {
+    position: absolute; top: 15px; left: 15px; background: rgba(255,255,255,0.9);
+    padding: 12px 18px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    font-weight: bold; color: #0f172a; font-size: 1rem; pointer-events: none;
+    border-left: 4px solid var(--primary-light);
+  }
+  .overlay-val { color: var(--primary-light); font-size: 1.2rem; }
+
+  .feedback { background-color: #f0fdf4; border-left: 5px solid #16a34a; padding: 1.2rem; margin-top: 1.5rem; font-weight: 700; color: #15803d; border-radius: 0 8px 8px 0; }
+  .formula-box { background: #1e293b; color: #f8fafc; padding: 15px; border-radius: 8px; text-align: center; margin-top: 10px; border-left: 4px solid #38bdf8; font-size: 1.1rem; }
+  .science-note { background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:10px 12px; color:#1e3a8a; font-size:.82rem; }
+  .legend-row { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; font-size:.78rem; }
+  .legend-row span { padding:3px 8px; border-radius:999px; background:#e2e8f0; }
+  
+  table { width: 100%; border-collapse: collapse; margin-top: 1rem; background: white; }
+  th, td { border-bottom: 1px solid #e2e8f0; padding: 12px; text-align: center; }
+  th { background-color: #f8fafc; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🧲 04. 로런츠 힘 3D 탐구 스튜디오</h1>
+</header>
+
+<nav id="topNav">
+  <button class="active" data-tab="0">1. 힘/속도/방향</button>
+  <button data-tab="1">2. 크룩스관 실험</button>
+  <button data-tab="2">3. 원운동 조건(모눈종이)</button>
+  <button data-tab="3">4. 오개념 확인</button>
+  <button data-tab="4">5. 지구 밴앨런대</button>
+  <button data-tab="5">6. 결과 기록</button>
+</nav>
+
+<main>
+  <section id="tab0" class="tab-content active">
+    <h2>1. 로런츠 힘의 방향 (사전 개념)</h2>
+    <p class="desc">전하의 종류와 자기장의 방향에 따른 로런츠 힘 $\mathbf{F} = q(\mathbf{v} \times \mathbf{B})$ 벡터를 3D로 확인합니다.</p>
+    <div class="layout-grid">
+      <div class="control-panel">
+        <div class="control-group">
+          <label>전하 종류 (q)</label>
+          <select id="t0_charge" onchange="resetSim0()">
+            <option value="1">양(+)전하 (Proton)</option>
+            <option value="-1">음(-)전하 (Electron)</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label>자기장 방향 (B)</label>
+          <select id="t0_bdir" onchange="resetSim0()">
+            <option value="-z">화면 안으로 들어가는 방향 (-Z)</option>
+            <option value="+z">화면 밖으로 나오는 방향 (+Z)</option>
+            <option value="+y">위쪽 방향 (+Y)</option>
+          </select>
+        </div>
+        <button class="action-btn" onclick="resetSim0()">위치 초기화</button>
+      </div>
+      <div>
+        <div class="canvas-wrapper"><canvas id="cvs0"></canvas></div>
+        <div id="fb0" class="feedback">입자가 이동하며 힘의 방향을 나타냅니다. 드래그하여 시점을 돌려보세요.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab1" class="tab-content">
+    <h2>2. 교과서 해보기: 크룩스관의 편향</h2>
+    <p class="desc">전자총에서 나온 전자가 슬릿을 지나 형광 스크린에 만드는 궤적을 관찰합니다. 자기장은 N극에서 S극으로 향하며, 전자는 음전하이므로 오른손 법칙과 반대 방향으로 휩니다.</p>
+    <div class="layout-grid">
+      <div class="control-panel">
+        <div class="btn-group">
+          <button class="action-btn active-btn" id="btn1_OFF" onclick="setSim1('OFF')">자석 제거 (직진)</button>
+          <button class="action-btn" id="btn1_N" onclick="setSim1('N')">자기장 화면 밖으로 (+Z)</button>
+          <button class="action-btn" id="btn1_S" onclick="setSim1('S')">자기장 화면 안으로 (−Z)</button>
+        </div>
+        <div class="science-note">좌표: 전자 속도는 오른쪽(+X). 따라서 $\mathbf F=-e(\mathbf v\times\mathbf B)$입니다. 자석 색은 빨강=N, 파랑=S입니다.</div>
+      </div>
+      <div>
+        <div class="canvas-wrapper"><canvas id="cvs1"></canvas></div>
+        <div id="fb1" class="feedback">자석이 없을 때는 전자빔(음극선)이 직진합니다.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab2" class="tab-content">
+    <h2>3. 조건 비교: 원운동 모눈종이</h2>
+    <p class="desc">수직 위에서 내려다보는(Top-down) 모눈종이 위에서 반지름 $r = \frac{mv}{qB}$ 변화를 수치와 함께 직접 확인합니다.</p>
+    <div class="layout-grid">
+      <div class="control-panel">
+        <div class="control-group">
+          <label>입자 초기 속력 ($v$)</label>
+          <input type="range" id="t2_v" min="5" max="25" step="1" value="15" oninput="updateSim2()">
+        </div>
+        <div class="control-group">
+          <label>자기장 세기 ($B$)</label>
+          <input type="range" id="t2_b" min="0.2" max="1.0" step="0.1" value="0.5" oninput="updateSim2()">
+        </div>
+        <button class="action-btn" onclick="recordData()" style="background:#10b981; color:white;">현재 데이터 기록</button>
+        <div class="formula-box">$$ r = \frac{mv}{qB} $$</div>
+      </div>
+      <div>
+        <div class="canvas-wrapper">
+          <div class="overlay-ui">
+            속력(v) = <span id="ui_v" class="overlay-val">15</span> m/s<br>
+            자기장(B) = <span id="ui_b" class="overlay-val">0.5</span> T<br>
+            반지름(r) = <span id="ui_r" class="overlay-val">30.0</span> m
+          </div>
+          <canvas id="cvs2"></canvas>
+        </div>
+        <div id="fb2" class="feedback">슬라이더를 조절하면 즉시 모눈종이 위의 궤도 반지름이 변합니다.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab3" class="tab-content">
+    <h2>4. 오개념 확인: 힘이 작용하지 않는 경우</h2>
+    <p class="desc">넓은 공간에서 속도 $\mathbf{v}$ 와 자기장 $\mathbf{B}$ 사이의 각도에 따른 궤적(직진/원/나선)을 관찰합니다.</p>
+    <div class="layout-grid">
+      <div class="control-panel">
+        <div class="btn-group">
+          <button class="action-btn" id="btn3_stop" onclick="setSim3('stop')">정지 ($v = 0$)</button>
+          <button class="action-btn" id="btn3_para" onclick="setSim3('parallel')">나란히 운동 ($\theta = 0^\circ$)</button>
+          <button class="action-btn" id="btn3_perp" onclick="setSim3('perp')">수직 운동 ($\theta = 90^\circ$)</button>
+          <button class="action-btn active-btn" id="btn3_slant" onclick="setSim3('slant')">비스듬히 운동 ($\theta = 45^\circ$)</button>
+        </div>
+      </div>
+      <div>
+        <div class="canvas-wrapper"><canvas id="cvs3"></canvas></div>
+        <div id="fb3" class="feedback">버튼을 선택하여 물리적 상황을 확인하세요.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab4" class="tab-content">
+    <h2>5. 지구 자기권: 밴앨런대와 오로라</h2>
+    <p class="desc">기울어진 지구 쌍극자 자기장, 내·외부 밴앨런대의 공간 분포, 자기거울 운동과 극지방 오로라 입자 강수를 구분해 관찰합니다.</p>
+    <div class="layout-grid">
+      <div class="control-panel">
+        <div class="btn-group">
+          <button class="action-btn active-btn" id="btn4_van" onclick="setSim4('vanallen')">밴앨런대·자기거울</button>
+          <button class="action-btn" id="btn4_aurora" onclick="setSim4('aurora')">오로라 입자 강수</button>
+        </div>
+        <div class="control-group">
+          <label>태양 활동/입자 유입 <span id="ui_solar">50</span>%</label>
+          <input type="range" id="t4_solar" min="10" max="100" value="50" oninput="updateSpaceWeather()">
+        </div>
+        <div class="science-note">모형은 교육용 축척입니다. 자기력선은 장의 방향을, 반투명 고리는 입자 밀도가 높은 영역을 나타냅니다. 실제 자기권은 태양풍 때문에 낮쪽이 눌리고 밤쪽으로 길어집니다.</div>
+      </div>
+      <div>
+        <div class="canvas-wrapper"><canvas id="cvs4"></canvas></div>
+        <div class="legend-row"><span style="color:#f59e0b">● 내대(주로 양성자)</span><span style="color:#60a5fa">● 외대(주로 전자)</span><span style="color:#22c55e">● 자기력선</span><span style="color:#d946ef">● 오로라</span></div>
+        <div id="fb4" class="feedback">밴앨런대는 지구 자기장에 포획된 고에너지 입자의 영역입니다. 입자는 자기력선을 따라 나선 운동하고 양극 쪽 강한 자기장에서 반사됩니다.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab5" class="tab-content">
+    <h2>6. 탐구 데이터 기록</h2>
+    <table>
+      <thead>
+        <tr><th>회차</th><th>속력 ($v$)</th><th>자기장 ($B$)</th><th>이론 반지름 ($r$)</th></tr>
+      </thead>
+      <tbody id="recordBody">
+        <tr id="emptyRecord"><td colspan="4">3번 탭에서 기록 버튼을 누르세요.</td></tr>
+      </tbody>
+    </table>
+  </section>
+</main>
+
+<script>
+let currentTab = 0;
+
+function createScene(canvasId, camPos = new THREE.Vector3(0, 100, 150)) {
+  const canvas = document.getElementById(canvasId);
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  renderer.setPixelRatio(window.devicePixelRatio);
+  
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color('#0f172a');
+  
+  const camera = new THREE.PerspectiveCamera(45, 1, 1, 2000);
+  camera.position.copy(camPos);
+  
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+  scene.add(ambientLight);
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+  dirLight.position.set(100, 200, 100);
+  scene.add(dirLight);
+
+  return { scene, camera, renderer, controls, canvas };
+}
+
+function resizeScene(sys) {
+  const parent = sys.canvas.parentElement;
+  const w = parent.clientWidth;
+  const h = parent.clientHeight;
+  if(w === 0 || h === 0) return;
+  sys.renderer.setSize(w, h, false);
+  sys.camera.aspect = w / h;
+  sys.camera.updateProjectionMatrix();
+}
+
+// RK4 수치 적분기
+function solveLorentzRK4(pos, vel, q, m, dt, getB, getE = null) {
+  const calcAcc = (p, v) => {
+    const B = getB(p);
+    const Fm = new THREE.Vector3().crossVectors(v, B).multiplyScalar(q);
+    if(getE) Fm.add(getE(p).multiplyScalar(q));
+    return Fm.divideScalar(m);
+  };
+  const k1v = calcAcc(pos, vel); const k1x = vel.clone();
+  const p2 = pos.clone().addScaledVector(k1x, dt/2); const v2 = vel.clone().addScaledVector(k1v, dt/2);
+  const k2v = calcAcc(p2, v2); const k2x = v2;
+  const p3 = pos.clone().addScaledVector(k2x, dt/2); const v3 = vel.clone().addScaledVector(k2v, dt/2);
+  const k3v = calcAcc(p3, v3); const k3x = v3;
+  const p4 = pos.clone().addScaledVector(k3x, dt); const v4 = vel.clone().addScaledVector(k3v, dt);
+  const k4v = calcAcc(p4, v4); const k4x = v4;
+  const dx = k1x.addScaledVector(k2x, 2).addScaledVector(k3x, 2).add(k4x).multiplyScalar(dt/6);
+  const dv = k1v.addScaledVector(k2v, 2).addScaledVector(k3v, 2).add(k4v).multiplyScalar(dt/6);
+  return { pos: pos.add(dx), vel: vel.add(dv) };
+}
+
+// 텍스트 라벨 생성
+function createLabel(text, color) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256; canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = color;
+  ctx.font = 'bold 36px sans-serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(text, 128, 32);
+  const tex = new THREE.CanvasTexture(canvas);
+  const mat = new THREE.SpriteMaterial({ map: tex, depthTest: false });
+  const sprite = new THREE.Sprite(mat);
+  sprite.scale.set(30, 7.5, 1);
+  return sprite;
+}
+
+// 공통 재질
+const matProton = new THREE.MeshPhongMaterial({ color: 0xef4444 });
+const matElectron = new THREE.MeshPhongMaterial({ color: 0x3b82f6 });
+
+const sys0 = createScene('cvs0', new THREE.Vector3(0, 100, 150));
+let p0, arrV0, arrB0, arrF0, trail0, pts0 = [];
+let anim0 = { pos: new THREE.Vector3(0,0,0), vel: new THREE.Vector3(25,0,0) };
+let lblV, lblB, lblF;
+
+function initSim0() {
+  p0 = new THREE.Mesh(new THREE.SphereGeometry(3, 32, 32), matProton);
+  sys0.scene.add(p0);
+  arrV0 = new THREE.ArrowHelper(new THREE.Vector3(1,0,0), new THREE.Vector3(), 30, 0x10b981, 8, 6); // 속도 초록
+  arrB0 = new THREE.ArrowHelper(new THREE.Vector3(1,0,0), new THREE.Vector3(), 30, 0x94a3b8, 8, 6); // 자기장 회색
+  arrF0 = new THREE.ArrowHelper(new THREE.Vector3(1,0,0), new THREE.Vector3(), 30, 0xf59e0b, 8, 6); // 힘 주황
+  sys0.scene.add(arrV0); sys0.scene.add(arrB0); sys0.scene.add(arrF0);
+  
+  lblV = createLabel("속도(v)", "#10b981"); sys0.scene.add(lblV);
+  lblB = createLabel("자기장(B)", "#cbd5e1"); sys0.scene.add(lblB);
+  lblF = createLabel("힘(F)", "#f59e0b"); sys0.scene.add(lblF);
+
+  trail0 = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({color: 0xffffff, opacity: 0.5, transparent:true}));
+  sys0.scene.add(trail0);
+  const grid = new THREE.GridHelper(150, 15, 0x334155, 0x1e293b); grid.position.y = -30; sys0.scene.add(grid);
+  resetSim0();
+}
+
+function resetSim0() {
+  const q = parseFloat(document.getElementById('t0_charge').value);
+  p0.material = (q > 0) ? matProton : matElectron;
+  anim0.pos.set(0, 0, 0); anim0.vel.set(20, 0, 0); pts0 = [];
+  document.getElementById('fb0').innerHTML = (q>0?"양(+)전하":"음(-)전하") + " 가 이동하며 받는 로런츠 힘 방향을 확인하세요.";
+}
+
+function updateSim0() {
+  const q = parseFloat(document.getElementById('t0_charge').value);
+  const bDir = document.getElementById('t0_bdir').value;
+  let B = new THREE.Vector3();
+  if(bDir === '-z') B.set(0, 0, -1); else if(bDir === '+z') B.set(0, 0, 1); else if(bDir === '+y') B.set(0, 1, 0);
+
+  const res = solveLorentzRK4(anim0.pos, anim0.vel, q, 1, 0.05, () => B.clone().multiplyScalar(0.5));
+  anim0.pos = res.pos; anim0.vel = res.vel;
+  if(anim0.pos.length() > 60) { anim0.pos.set(0,0,0); anim0.vel.set(20,0,0); pts0=[]; }
+
+  p0.position.copy(anim0.pos);
+  pts0.push(anim0.pos.clone()); trail0.geometry.setFromPoints(pts0);
+
+  const vDir = anim0.vel.clone().normalize();
+  const F = new THREE.Vector3().crossVectors(anim0.vel, B).multiplyScalar(q);
+  
+  arrV0.position.copy(anim0.pos); arrV0.setDirection(vDir); lblV.position.copy(anim0.pos).add(vDir.multiplyScalar(35));
+  arrB0.position.copy(anim0.pos); arrB0.setDirection(B.clone().normalize()); lblB.position.copy(anim0.pos).add(B.clone().normalize().multiplyScalar(35));
+  
+  if(F.length() > 0.1) {
+    arrF0.visible = true; lblF.visible = true;
+    arrF0.position.copy(anim0.pos); arrF0.setDirection(F.clone().normalize());
+    lblF.position.copy(anim0.pos).add(F.clone().normalize().multiplyScalar(35));
+  } else {
+    arrF0.visible = false; lblF.visible = false;
+  }
+}
+
+const sys1 = createScene('cvs1', new THREE.Vector3(0, 30, 150));
+let state1 = 'OFF', magnetMesh, line1, beamGlow1, fieldGroup1, spot1, pts1 = [];
+
+function initSim1() {
+  // 저압 유리 방전관: 전자총 → 집속 슬릿 → 형광 스크린
+  const glassGeo = new THREE.CylinderGeometry(22, 22, 130, 48, 1, true);
+  glassGeo.rotateZ(Math.PI/2);
+  const glassMat = new THREE.MeshPhongMaterial({ color: 0xbfe8ff, opacity: 0.17, transparent: true, shininess: 90, side: THREE.DoubleSide, depthWrite:false });
+  sys1.scene.add(new THREE.Mesh(glassGeo, glassMat));
+
+  const metal = new THREE.MeshStandardMaterial({color:0x475569, metalness:.8, roughness:.25});
+  const cathode = new THREE.Mesh(new THREE.CylinderGeometry(10,10,3,32), metal); cathode.position.x=-57; cathode.rotation.z=Math.PI/2;
+  const anode = new THREE.Mesh(new THREE.TorusGeometry(7,2,12,32), metal); anode.position.x=-39; anode.rotation.y=Math.PI/2;
+  const screen = new THREE.Mesh(new THREE.PlaneGeometry(30,34), new THREE.MeshPhongMaterial({color:0x143d2b, emissive:0x062a17, side:THREE.DoubleSide}));
+  screen.position.x=58; screen.rotation.y=-Math.PI/2;
+  spot1 = new THREE.Mesh(new THREE.CircleGeometry(2.3,24), new THREE.MeshBasicMaterial({color:0x86efac, transparent:true, opacity:.95, side:THREE.DoubleSide}));
+  spot1.rotation.y=-Math.PI/2; spot1.position.x=57.7;
+  sys1.scene.add(cathode,anode,screen,spot1);
+  const cLabel=createLabel('음극(−)', '#93c5fd'); cLabel.position.set(-57,-27,0); cLabel.scale.set(20,5,1); sys1.scene.add(cLabel);
+  const sLabel=createLabel('형광 스크린', '#86efac'); sLabel.position.set(55,-27,0); sLabel.scale.set(25,6,1); sys1.scene.add(sLabel);
+
+  line1 = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({color:0x86efac, transparent:true, opacity:1}));
+  beamGlow1 = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({color:0x22c55e, transparent:true, opacity:.3}));
+  sys1.scene.add(beamGlow1,line1);
+
+  // 관의 앞·뒤에 둔 자석 극면. 두 극 사이 자기장은 N→S.
+  magnetMesh = new THREE.Group();
+  const magN = new THREE.Mesh(new THREE.BoxGeometry(32,32,14), new THREE.MeshPhongMaterial({color:0xef4444}));
+  const magS = new THREE.Mesh(new THREE.BoxGeometry(32,32,14), new THREE.MeshPhongMaterial({color:0x2563eb}));
+  magN.position.z=-36; magS.position.z=36;
+  const ln=createLabel('N','#ffffff'); ln.position.set(0,0,-44); ln.scale.set(12,4,1);
+  const ls=createLabel('S','#ffffff'); ls.position.set(0,0,44); ls.scale.set(12,4,1);
+  magnetMesh.add(magN,magS,ln,ls); magnetMesh.visible=false;
+  sys1.scene.add(magnetMesh);
+  fieldGroup1=new THREE.Group(); sys1.scene.add(fieldGroup1);
+
+  setSim1('OFF');
+}
+
+function setSim1(mode) {
+  state1 = mode;
+  document.querySelectorAll('#tab1 .action-btn').forEach(btn => btn.classList.remove('active-btn'));
+  document.getElementById('btn1_' + mode).classList.add('active-btn');
+  
+  magnetMesh.visible = mode !== 'OFF';
+  magnetMesh.rotation.y = mode === 'S' ? Math.PI : 0;
+  while(fieldGroup1.children.length) fieldGroup1.remove(fieldGroup1.children[0]);
+  if(mode !== 'OFF') {
+    const bz=mode==='N'?1:-1;
+    for(let x=-25;x<=25;x+=25) for(let y=-10;y<=10;y+=20)
+      fieldGroup1.add(new THREE.ArrowHelper(new THREE.Vector3(0,0,bz),new THREE.Vector3(x,y,-bz*14),28,0xfacc15,5,3));
+  }
+  if(mode === 'N') document.getElementById('fb1').innerHTML = "전자 속도 +X, 자기장 +Z이므로 $\\mathbf v\\times\\mathbf B=-Y$. 전자는 음전하라 힘은 반대인 <b>+Y(위쪽)</b>입니다.";
+  if(mode === 'S') document.getElementById('fb1').innerHTML = "전자 속도 +X, 자기장 −Z이므로 $\\mathbf v\\times\\mathbf B=+Y$. 전자는 음전하라 <b>−Y(아래쪽)</b>으로 휩니다.";
+  if(mode === 'OFF') document.getElementById('fb1').innerHTML = "외부 자기장이 거의 없으면 전자빔은 슬릿을 지나 직진해 스크린 중앙을 밝힙니다.";
+
+  let pos = new THREE.Vector3(-55,0,0), vel = new THREE.Vector3(12,0,0);
+  pts1 = [pos.clone()];
+  const getB = (p) => {
+    if(state1==='OFF' || Math.abs(p.x)>27) return new THREE.Vector3();
+    return new THREE.Vector3(0,0,state1==='N'?0.16:-0.16);
+  };
+  for(let i=0;i<260;i++) {
+    const res=solveLorentzRK4(pos,vel,-1,1,0.045,getB);
+    pos = res.pos; vel = res.vel; pts1.push(pos.clone());
+    if(pos.x>=57 || Math.abs(pos.y)>18) break;
+  }
+  line1.geometry.setFromPoints(pts1);
+  beamGlow1.geometry.setFromPoints(pts1);
+  spot1.position.y=THREE.MathUtils.clamp(pos.y,-15,15); spot1.position.z=pos.z;
+}
+
+const sys2 = createScene('cvs2', new THREE.Vector3(0, 180, 0)); // Top-down view
+let p2, line2, pts2 = [];
+let anim2 = { pos: new THREE.Vector3(0,0,0), vel: new THREE.Vector3(15,0,0) };
+
+function initSim2() {
+  sys2.camera.lookAt(0,0,0);
+  
+  // 2D 모눈종이 텍스처 느낌의 그리드
+  const grid = new THREE.GridHelper(200, 40, 0x1d4ed8, 0x94a3b8);
+  sys2.scene.add(grid);
+  
+  p2 = new THREE.Mesh(new THREE.SphereGeometry(3, 16, 16), matProton); sys2.scene.add(p2);
+  line2 = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({color: 0xef4444, linewidth: 2})); sys2.scene.add(line2);
+  
+  updateSim2();
+}
+
+function updateSim2() {
+  const v = parseFloat(document.getElementById('t2_v').value);
+  const b = parseFloat(document.getElementById('t2_b').value);
+  const r = v / b;
+  
+  document.getElementById('ui_v').innerText = v.toFixed(1);
+  document.getElementById('ui_b').innerText = b.toFixed(1);
+  document.getElementById('ui_r').innerText = r.toFixed(1);
+
+  // 물리 초기화 (새로운 원 궤도)
+  anim2.pos.set(0, 0, 0); anim2.vel.set(v, 0, 0); pts2 = [];
+}
+
+function updateSim2Physics() {
+  const b = parseFloat(document.getElementById('t2_b').value);
+  const getB = () => new THREE.Vector3(0, -b, 0); // 수직 아래 방향 균일 자기장
+  
+  const res = solveLorentzRK4(anim2.pos, anim2.vel, 1, 1, 0.1, getB);
+  anim2.pos = res.pos; anim2.vel = res.vel;
+  p2.position.copy(anim2.pos);
+  pts2.push(anim2.pos.clone());
+  if(pts2.length > 500) pts2.shift(); // 궤적 길이 유지
+  line2.geometry.setFromPoints(pts2);
+}
+
+let recCount = 0;
+function recordData() {
+  const v = document.getElementById('ui_v').innerText;
+  const b = document.getElementById('ui_b').innerText;
+  const r = document.getElementById('ui_r').innerText;
+  
+  if(recCount === 0) document.getElementById('emptyRecord').style.display = 'none';
+  recCount++;
+  document.getElementById('recordBody').innerHTML += `<tr><td>${recCount}</td><td>${v}</td><td>${b}</td><td><b style="color:#0ea5e9">${r} m</b></td></tr>`;
+}
+
+const sys3 = createScene('cvs3', new THREE.Vector3(0, 80, 180));
+let p3, line3, pts3 = [];
+let anim3 = { pos: new THREE.Vector3(0,0,0), vel: new THREE.Vector3() }, mode3 = 'slant';
+
+function initSim3() {
+  p3 = new THREE.Mesh(new THREE.SphereGeometry(3, 16, 16), matProton); sys3.scene.add(p3);
+  line3 = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({color: 0xfacc15, linewidth: 2})); sys3.scene.add(line3);
+
+  // 넓은 영역에 화살표(자기장) 배치
+  for(let x=-100; x<=100; x+=40){
+    for(let y=-30; y<=30; y+=30){
+      for(let z=-30; z<=30; z+=30){
+        const arr = new THREE.ArrowHelper(new THREE.Vector3(1,0,0), new THREE.Vector3(x,y,z), 15, 0x64748b, 4, 3);
+        sys3.scene.add(arr);
+      }
+    }
+  }
+  setSim3('slant');
+}
+
+function setSim3(mode) {
+  mode3 = mode;
+  document.querySelectorAll('#tab3 .action-btn').forEach(btn => btn.classList.remove('active-btn'));
+  document.getElementById('btn3_' + (mode==='parallel'?'para':mode)).classList.add('active-btn');
+  
+  anim3.pos.set(-100, 0, 0); pts3 = [];
+  const v0 = 20;
+
+  if(mode === 'stop') { anim3.vel.set(0,0,0); document.getElementById('fb3').innerHTML = "정지 ($v=0$): 로런츠 힘이 없어 그 자리에 머뭅니다."; }
+  if(mode === 'parallel') { anim3.vel.set(v0,0,0); document.getElementById('fb3').innerHTML = "나란히 ($v \times B = 0$): 힘을 받지 않고 등속 직진합니다."; }
+  if(mode === 'perp') { anim3.pos.set(0,0,0); anim3.vel.set(0,v0,0); document.getElementById('fb3').innerHTML = "수직: 구심력을 받아 등속 원운동합니다."; }
+  if(mode === 'slant') { anim3.vel.set(v0*0.5, v0*0.8, 0); document.getElementById('fb3').innerHTML = "비스듬히: 직진과 회전이 결합된 <b>나선 운동(Helical motion)</b>을 합니다."; }
+}
+
+function updateSim3Physics() {
+  const res = solveLorentzRK4(anim3.pos, anim3.vel, 1, 1, 0.1, () => new THREE.Vector3(0.5, 0, 0));
+  anim3.pos = res.pos; anim3.vel = res.vel;
+  if(anim3.pos.x > 120) setSim3(mode3); // 길게 비행 후 루프
+  p3.position.copy(anim3.pos); pts3.push(anim3.pos.clone());
+  if(pts3.length > 800) pts3.shift();
+  line3.geometry.setFromPoints(pts3);
+}
+
+const sys4 = createScene('cvs4', new THREE.Vector3(80, 40, 120));
+let p4, line4, pts4=[], mode4='vanallen', earthMesh, fieldGroup4, beltGroup4, auroraGroup4;
+let spaceClock=0, auroraParticles=[];
+
+function dipolePoint(L, lambda, phi) {
+  const r=L*Math.cos(lambda)*Math.cos(lambda);
+  return new THREE.Vector3(r*Math.cos(lambda)*Math.cos(phi), r*Math.sin(lambda), r*Math.cos(lambda)*Math.sin(phi));
+}
+
+function makeDipoleLine(L,phi,color=0x22c55e,opacity=.42) {
+  const limit=Math.acos(Math.sqrt(20/L)), pts=[];
+  for(let i=0;i<=100;i++) pts.push(dipolePoint(L,-limit+2*limit*i/100,phi));
+  return new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color,transparent:true,opacity}));
+}
+
+function initSim4() {
+  p4=new THREE.Mesh(new THREE.SphereGeometry(1.7,16,16),matElectron); sys4.scene.add(p4);
+  line4 = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({color: 0xec4899, linewidth: 2})); sys4.scene.add(line4);
+  earthMesh = new THREE.Group();
+  const eBody=new THREE.Mesh(new THREE.SphereGeometry(20,48,32),new THREE.MeshPhongMaterial({color:0x1769aa,emissive:0x031a36,shininess:35}));
+  const eGrid=new THREE.Mesh(new THREE.SphereGeometry(20.15,24,16),new THREE.MeshBasicMaterial({color:0x93c5fd,wireframe:true,transparent:true,opacity:.23}));
+  const axis=new THREE.ArrowHelper(new THREE.Vector3(0,1,0),new THREE.Vector3(0,-30,0),60,0xffffff,4,3);
+  earthMesh.add(eBody,eGrid,axis); earthMesh.rotation.z=THREE.MathUtils.degToRad(11);
+  sys4.scene.add(earthMesh);
+
+  fieldGroup4=new THREE.Group();
+  [30,42,58,78].forEach(L=>{for(let k=0;k<8;k++) fieldGroup4.add(makeDipoleLine(L,k*Math.PI/4));});
+  fieldGroup4.rotation.z=THREE.MathUtils.degToRad(11); sys4.scene.add(fieldGroup4);
+
+  beltGroup4=new THREE.Group();
+  const inner=new THREE.Mesh(new THREE.TorusGeometry(32,6,24,96),new THREE.MeshBasicMaterial({color:0xf59e0b,transparent:true,opacity:.24,side:THREE.DoubleSide,depthWrite:false}));
+  const outer=new THREE.Mesh(new THREE.TorusGeometry(52,11,24,96),new THREE.MeshBasicMaterial({color:0x60a5fa,transparent:true,opacity:.18,side:THREE.DoubleSide,depthWrite:false}));
+  inner.rotation.x=outer.rotation.x=Math.PI/2; beltGroup4.add(inner,outer); beltGroup4.rotation.z=THREE.MathUtils.degToRad(11); sys4.scene.add(beltGroup4);
+
+  auroraGroup4=new THREE.Group(); sys4.scene.add(auroraGroup4);
+  const curtainMat=new THREE.MeshBasicMaterial({color:0x39ff88,transparent:true,opacity:.18,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,depthWrite:false});
+  [1,-1].forEach(sign=>{for(let k=0;k<18;k++){
+    const phi=k/18*Math.PI*2, h=7+4*Math.sin(k*1.7);
+    const g=new THREE.PlaneGeometry(3,h); const m=new THREE.Mesh(g,curtainMat.clone());
+    const rr=18.6, lat=THREE.MathUtils.degToRad(68*sign);
+    m.position.set(rr*Math.cos(lat)*Math.cos(phi),rr*Math.sin(lat),rr*Math.cos(lat)*Math.sin(phi));
+    m.lookAt(0,m.position.y,0); m.rotation.z+=Math.PI/2; auroraGroup4.add(m);
+  }});
+  for(let i=0;i<90;i++){
+    const mesh=new THREE.Mesh(new THREE.SphereGeometry(.45,8,8),new THREE.MeshBasicMaterial({color:i%3?0x86efac:0x67e8f9,transparent:true,opacity:.85}));
+    auroraParticles.push({mesh,phase:Math.random(),phi:Math.random()*Math.PI*2,north:Math.random()>.5?1:-1,L:48+Math.random()*20}); auroraGroup4.add(mesh);
+  }
+
+  setSim4('vanallen');
+}
+
+function setSim4(mode) {
+  mode4 = mode;
+  document.querySelectorAll('#tab4 .action-btn').forEach(btn => btn.classList.remove('active-btn'));
+  document.getElementById('btn4_' + (mode==='aurora'?'aurora':'van')).classList.add('active-btn');
+  pts4 = [];
+  beltGroup4.visible=mode==='vanallen'; p4.visible=mode==='vanallen'; line4.visible=mode==='vanallen';
+  auroraGroup4.visible=mode==='aurora';
+  if(mode==='aurora') {
+    document.getElementById('fb4').innerHTML="<b>오로라</b>: 자기권에서 가속된 전자·이온 일부가 자기력선을 따라 극지방 상층대기로 내려와 산소·질소와 충돌합니다. 들뜬 원자·분자가 빛을 내며, 녹색은 주로 원자 산소 방출을 나타냅니다.";
+  } else {
+    document.getElementById('fb4').innerHTML="<b>밴앨런대</b>: 내대는 비교적 안정적인 고에너지 양성자가, 외대는 변동성이 큰 고에너지 전자가 우세합니다. 점은 자기력선을 따라 나선 운동하며 남·북 자기거울점 사이를 왕복하고 천천히 경도 방향으로 표류합니다.";
+  }
+}
+
+function updateSim4Physics() {
+  spaceClock+=0.012;
+  if(mode4==='vanallen') {
+    // 세 시간척도(회전·바운스·경도 표류)를 분리한 guiding-center 교육 모형
+    const lambda=.68*Math.sin(spaceClock*1.8), phi=.35*spaceClock;
+    const center=dipolePoint(47,lambda,phi);
+    const gyro=new THREE.Vector3(Math.cos(spaceClock*18),0,Math.sin(spaceClock*18)).multiplyScalar(1.5);
+    p4.position.copy(center.add(gyro)); p4.position.applyAxisAngle(new THREE.Vector3(0,0,1),THREE.MathUtils.degToRad(11));
+    pts4.push(p4.position.clone()); if(pts4.length>700) pts4.shift(); line4.geometry.setFromPoints(pts4);
+  } else {
+    const activity=parseFloat(document.getElementById('t4_solar').value)/100;
+    auroraParticles.forEach(a=>{
+      a.phase=(a.phase+.0025+.006*activity)%1;
+      const start=.15, end=1.03, lam=a.north*(start+(end-start)*a.phase);
+      a.mesh.position.copy(dipolePoint(a.L,lam,a.phi+.08*Math.sin(spaceClock))).applyAxisAngle(new THREE.Vector3(0,0,1),THREE.MathUtils.degToRad(11));
+      a.mesh.material.opacity=.2+.8*(1-a.phase);
+    });
+    auroraGroup4.children.slice(0,36).forEach((m,i)=>m.material.opacity=(.08+.28*activity)*(.75+.25*Math.sin(spaceClock*5+i)));
+  }
+}
+
+function updateSpaceWeather(){
+  const v=document.getElementById('t4_solar').value; document.getElementById('ui_solar').innerText=v;
+  if(mode4==='aurora') document.getElementById('fb4').innerHTML=`태양 활동 지수 <b>${v}%</b>: 화면에서는 유입 빈도와 오로라 밝기를 높여 표현합니다. 실제 오로라 세기는 태양풍의 속도뿐 아니라 밀도와 행성간 자기장 방향, 자기권 재결합에 좌우됩니다.`;
+}
+
+function initAll() {
+  initSim0(); initSim1(); initSim2(); initSim3(); initSim4();
+
+  function animate() {
+    requestAnimationFrame(animate);
+    if(currentTab === 0) { updateSim0(); sys0.controls.update(); sys0.renderer.render(sys0.scene, sys0.camera); }
+    if(currentTab === 1) { sys1.controls.update(); sys1.renderer.render(sys1.scene, sys1.camera); }
+    if(currentTab === 2) { updateSim2Physics(); sys2.controls.update(); sys2.renderer.render(sys2.scene, sys2.camera); }
+    if(currentTab === 3) { updateSim3Physics(); sys3.controls.update(); sys3.renderer.render(sys3.scene, sys3.camera); }
+    if(currentTab === 4) { updateSim4Physics(); sys4.controls.update(); sys4.renderer.render(sys4.scene, sys4.camera); }
+  }
+  animate();
+
+  document.querySelectorAll('#topNav button').forEach((btn, index) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-content').forEach((tc, i) => tc.classList.toggle('active', i === index));
+      document.querySelectorAll('#topNav button').forEach((b, i) => b.classList.toggle('active', i === index));
+      currentTab = index;
+      
+      // 탭 전환 시 화면 갱신 보장
+      setTimeout(() => {
+        if(index === 0) { resizeScene(sys0); resetSim0(); }
+        if(index === 1) { resizeScene(sys1); setSim1('OFF'); }
+        if(index === 2) { resizeScene(sys2); updateSim2(); }
+        if(index === 3) { resizeScene(sys3); setSim3('slant'); }
+        if(index === 4) { resizeScene(sys4); setSim4('vanallen'); }
+      }, 10);
+    });
+  });
+
+  window.addEventListener('resize', () => {
+    if(currentTab === 0) resizeScene(sys0);
+    if(currentTab === 1) resizeScene(sys1);
+    if(currentTab === 2) resizeScene(sys2);
+    if(currentTab === 3) resizeScene(sys3);
+    if(currentTab === 4) resizeScene(sys4);
+  });
+  
+  setTimeout(() => resizeScene(sys0), 50);
+}
+
+window.onload = initAll;
+</script>
+</body>
+</html>
