@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>01. 간섭과 회절 - 물리학 탐구 시뮬레이션 웹앱</title>
+  
+  <!-- MathJax -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$']]
+      },
+      options: {
+        ignoreHtmlClass: 'tex2jax_ignore',
+        processHtmlClass: 'tex2jax_process'
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <!-- Three.js & OrbitControls -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+  <style>
+    :root {
+      --primary-color: #0284c7;
+      --primary-hover: #0369a1;
+      --secondary-color: #0f172a;
+      --accent-color: #f59e0b;
+      --success-color: #10b981;
+      --danger-color: #ef4444;
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --text-color: #1e293b;
+      --text-muted: #64748b;
+      --border-color: #cbd5e1;
+      --tab-bg: #e2e8f0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.6;
+      padding: 15px;
+    }
+
+    .container {
+      max-width: 1260px;
+      margin: 0 auto;
+    }
+
+    header {
+      background: linear-gradient(135deg, #0369a1, #0284c7);
+      color: white;
+      padding: 22px;
+      border-radius: 14px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 15px rgba(2, 132, 199, 0.2);
+    }
+
+    header h1 {
+      font-size: 1.75rem;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    header p {
+      font-size: 0.95rem;
+      opacity: 0.92;
+    }
+
+    .nav-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 20px;
+      background: var(--tab-bg);
+      padding: 6px;
+      border-radius: 10px;
+    }
+
+    .tab-btn {
+      flex: 1 1 auto;
+      min-width: 130px;
+      padding: 11px 15px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.88rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+
+    .tab-btn.active {
+      background: white;
+      color: var(--primary-color);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+
+    .tab-content {
+      display: none;
+      background: var(--card-bg);
+      padding: 24px;
+      border-radius: 14px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+      margin-bottom: 20px;
+      border: 1px solid var(--border-color);
+    }
+
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.25s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .grid-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 900px) {
+      .grid-layout { grid-template-columns: 1fr; }
+    }
+
+    .controls-panel {
+      background: #f8fafc;
+      padding: 18px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+    }
+
+    .control-group {
+      margin-bottom: 14px;
+    }
+
+    .control-group label {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 600;
+      margin-bottom: 6px;
+      font-size: 0.88rem;
+      color: #334155;
+    }
+
+    .control-group input[type="range"] {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      accent-color: var(--primary-color);
+      background: #cbd5e1;
+      cursor: pointer;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 9px 16px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-primary {
+      background: var(--primary-color);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-outline {
+      background: white;
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+    }
+
+    .btn-outline:hover {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+    }
+
+    .math-box {
+      background: #f0f9ff;
+      border-left: 4px solid var(--primary-color);
+      padding: 14px 18px;
+      margin: 12px 0;
+      border-radius: 0 8px 8px 0;
+      font-size: 0.95rem;
+    }
+
+    .math-title {
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-bottom: 6px;
+      display: block;
+      font-size: 1rem;
+    }
+
+    .info-card {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      padding: 16px;
+      border-radius: 10px;
+      margin-top: 14px;
+    }
+
+    .info-card h4 {
+      color: var(--primary-color);
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .canvas-container {
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      background: #0f172a;
+    }
+
+    .canvas-label {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: #f8fafc;
+      background: rgba(15, 23, 42, 0.85);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255,255,255,0.1);
+      z-index: 10;
+    }
+
+    canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 0.88rem;
+    }
+
+    th, td {
+      border: 1px solid var(--border-color);
+      padding: 10px 12px;
+      text-align: center;
+    }
+
+    th {
+      background: #f1f5f9;
+      color: #334155;
+      font-weight: 600;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .badge-blue { background: #e0f2fe; color: #0369a1; }
+    .badge-amber { background: #fef3c7; color: #b45309; }
+    .badge-red { background: #fee2e2; color: #b91c1c; }
+    .badge-green { background: #dcfce7; color: #15803d; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>🌊 01. 간섭과 회절 탐구 시뮬레이션 웹앱</h1>
+    <p>2022 개정 교육과정 [전자기와 양자] | 교과서 56쪽~61쪽 연계 2D/3D 인터랙티브 파동 광학 엔진</p>
+  </header>
+
+  <div class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('concept')">1. 개념 확인</button>
+    <button class="tab-btn" onclick="switchTab('double-slit')">2. 영의 이중 슬릿 간섭</button>
+    <button class="tab-btn" onclick="switchTab('single-slit')">3. 단일 슬릿 회절</button>
+    <button class="tab-btn" onclick="switchTab('three-d-wave')">4. [3D] 파동 중첩 수조</button>
+    <button class="tab-btn" onclick="switchTab('soap-film')">5. 비누막 중력 유동 간섭</button>
+    <button class="tab-btn" onclick="switchTab('misconception')">6. 오개념 클리닉</button>
+    <button class="tab-btn" onclick="switchTab('modern-tech')">7. 첨단 기술(홀로그램·LIGO)</button>
+    <button class="tab-btn" onclick="switchTab('results')">8. 탐구 데이터 기록</button>
+  </div>
+
+  <!-- Tab 1: 개념 확인 -->
+  <div id="tab-concept" class="tab-content active">
+    <h2>빛의 중첩과 간섭·회절 핵심 수식 및 원리</h2>
+    <div class="grid-layout">
+      <div>
+        <div class="math-box">
+          <span class="math-title">1. 영의 이중 슬릿 간섭 (Young's Double Slit)</span>
+          <p>● 광로차(경로차): $\Delta = d \sin\theta \approx d \frac{x}{L}$</p>
+          <p>● 보강 간섭 (밝은 무늬): $d \frac{x}{L} = m\lambda \quad (m = 0, \pm 1, \pm 2, \dots)$</p>
+          <p>● 상쇄 간섭 (어두운 무늬): $d \frac{x}{L} = (m + \frac{1}{2})\lambda \quad (m = 0, \pm 1, \dots)$</p>
+          <p>● 이웃한 밝은 무늬 간격: $\Delta x = \frac{L\lambda}{d}$</p>
+        </div>
+
+        <div class="math-box">
+          <span class="math-title">2. 단일 슬릿 회절 (Single Slit Diffraction)</span>
+          <p>● 어두운 무늬(회절 극소) 조건: $a \sin\theta = m\lambda \quad (m = \pm 1, \pm 2, \dots)$</p>
+          <p>● 중앙 밝은 무늬 폭: $W = 2x_1 = \frac{2L\lambda}{a}$</p>
+          <p>● 회절 광도 분포: $I(\theta) = I_0 \left( \frac{\sin\beta}{\beta} \right)^2 \quad \left(\beta = \frac{\pi a}{\lambda}\sin\theta\right)$</p>
+        </div>
+
+        <div class="math-box">
+          <span class="math-title">3. 얇은 막(비누막) 반사 간섭</span>
+          <p>● 광로차: $\Delta = 2nd$ (굴절률 $n$, 두께 $d$)</p>
+          <p>● 고정단 반사(공기 $\to$ 막): $\pi$ 위상 반전 / 자유단 반사(막 $\to$ 공기): 위상 불변</p>
+          <p>● 보강 간섭: $2nd = (m + \frac{1}{2})\lambda \quad (m = 0, 1, 2, \dots)$</p>
+          <p>● 상쇄 간섭: $2nd = m\lambda \quad (m = 0, 1, 2, \dots) \implies d \to 0$ 시 검은색(Black film)!</p>
+        </div>
+      </div>
+
+      <div>
+        <div class="info-card">
+          <h4>📌 핵심 물리 개념 요약</h4>
+          <ul>
+            <li style="margin-bottom:8px;"><strong>위상차와 중첩:</strong> 두 파동의 위상차가 $2m\pi$이면 진폭이 2배로 보강, $(2m+1)\pi$이면 상쇄되어 진폭이 0이 됨.</li>
+            <li style="margin-bottom:8px;"><strong>회절의 뚜렷함:</strong> 파장 $\lambda$가 길수록, 개구 폭 $a$가 좁을수록($\lambda / a$가 클수록) 회절 각도가 커져 넓게 퍼짐.</li>
+            <li style="margin-bottom:8px;"><strong>레이일리 분해능 기준(Rayleigh Criterion):</strong> 원형 개구에서 분해 가능한 최소 각도 $\theta_R = 1.22 \frac{\lambda}{D}$.</li>
+            <li style="margin-bottom:8px;"><strong>비누막 중력 효과:</strong> 세워진 비누막은 중력에 의해 액체가 아래로 흘러내려 쐐기형(Wedge) 단면을 형성하며, 상단은 극도로 얇아져 상쇄 간섭으로 암흑화됨.</li>
+          </ul>
+        </div>
+
+        <div class="info-card" style="margin-top:14px; background:#f8fafc;">
+          <h4>🔬 단원 연계 성취기준</h4>
+          <p><strong>[12전자02-01]</strong> 빛의 간섭과 회절을 알고, 홀로그램 등 현대의 정밀 기술에 활용되는 예를 찾을 수 있다.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 2: 영의 이중 슬릿 간섭 -->
+  <div id="tab-double-slit" class="tab-content">
+    <h2>영의 이중 슬릿 간섭 실험실 (Double Slit Interference)</h2>
+    <p style="color:var(--text-muted); margin-bottom:14px;">슬릿 간격 $d$, 빛의 파장 $\lambda$, 스크린 거리 $L$을 조절하여 스크린 상의 간섭 무늬와 광도 분포 곡선을 실시간으로 관찰합니다.</p>
+    <div class="grid-layout">
+      <div class="controls-panel">
+        <div class="control-group">
+          <label>빛의 파장 ($\lambda$): <span id="ds-lambda-val" style="color:var(--primary-color); font-weight:bold;">632 nm (Red)</span></label>
+          <input type="range" id="ds-lambda" min="400" max="750" value="632" oninput="updateDoubleSlit()">
+        </div>
+        <div class="control-group">
+          <label>슬릿 간격 ($d$): <span id="ds-d-val" style="color:var(--primary-color); font-weight:bold;">0.25 mm</span></label>
+          <input type="range" id="ds-d" min="0.05" max="0.80" step="0.01" value="0.25" oninput="updateDoubleSlit()">
+        </div>
+        <div class="control-group">
+          <label>각 슬릿의 폭 ($a$): <span id="ds-a-val" style="color:var(--primary-color); font-weight:bold;">0.04 mm</span></label>
+          <input type="range" id="ds-a" min="0.01" max="0.10" step="0.005" value="0.04" oninput="updateDoubleSlit()">
+        </div>
+        <div class="control-group">
+          <label>스크린까지 거리 ($L$): <span id="ds-L-val" style="color:var(--primary-color); font-weight:bold;">1.2 m</span></label>
+          <input type="range" id="ds-L" min="0.5" max="2.5" step="0.1" value="1.2" oninput="updateDoubleSlit()">
+        </div>
+
+        <div class="info-card">
+          <h4>📊 실시간 계산 물리량</h4>
+          <p>● 이웃한 밝은 무늬 간격 ($\Delta x = \frac{L\lambda}{d}$): <strong id="ds-fringe-spacing" style="color:var(--primary-color);">3.03 mm</strong></p>
+          <p>● 단일 슬릿 회절 포락선 폭 ($2x_1 = \frac{2L\lambda}{a}$): <strong id="ds-envelope-width">37.9 mm</strong></p>
+          <p>● 중앙 회절 피크 내 포함된 간섭 무늬 개수: <strong id="ds-fringes-count">13 개</strong></p>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="logCurrentExperiment('이중슬릿')">데이터 기록장에 저장</button>
+        </div>
+      </div>
+
+      <div class="canvas-container">
+        <span class="canvas-label">이중 슬릿 파면 간섭 + 스크린 무늬 + 광도 분포 $I(\theta)$</span>
+        <canvas id="canvas-double-slit" width="560" height="440"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 3: 단일 슬릿 회절 -->
+  <div id="tab-single-slit" class="tab-content">
+    <h2>단일 슬릿 회절 및 분해능 탐구 (Single Slit & Resolution)</h2>
+    <p style="color:var(--text-muted); margin-bottom:14px;">슬릿 개구 폭 $a$에 따른 회절 각도 확산과 레이일리 한계(Rayleigh Criterion) 분해능을 검증합니다.</p>
+    <div class="grid-layout">
+      <div class="controls-panel">
+        <div class="control-group">
+          <label>빛의 파장 ($\lambda$): <span id="ss-lambda-val" style="color:var(--primary-color); font-weight:bold;">532 nm (Green)</span></label>
+          <input type="range" id="ss-lambda" min="400" max="750" value="532" oninput="updateSingleSlit()">
+        </div>
+        <div class="control-group">
+          <label>슬릿 개구 폭 ($a$): <span id="ss-a-val" style="color:var(--primary-color); font-weight:bold;">0.08 mm</span></label>
+          <input type="range" id="ss-a" min="0.02" max="0.30" step="0.01" value="0.08" oninput="updateSingleSlit()">
+        </div>
+        <div class="control-group">
+          <label>스크린 거리 ($L$): <span id="ss-L-val" style="color:var(--primary-color); font-weight:bold;">1.0 m</span></label>
+          <input type="range" id="ss-L" min="0.5" max="2.0" step="0.1" value="1.0" oninput="updateSingleSlit()">
+        </div>
+
+        <div class="info-card">
+          <h4>📐 회절 특성 분석</h4>
+          <p>● 첫 번째 극소(어두운 점) 각도 ($\sin\theta_1 = \lambda / a$): <strong id="ss-theta-val" style="color:var(--primary-color);">0.00665 rad (0.381°)</strong></p>
+          <p>● 스크린 중앙 밝은 무늬 전체 폭 ($2x_1 = \frac{2L\lambda}{a}$): <strong id="ss-width-val">13.30 mm</strong></p>
+          <div style="margin-top:8px; font-size:0.85rem; color:#475569; background:#f1f5f9; padding:8px; border-radius:6px;">
+            💡 <strong>회절 법칙 확인:</strong> 슬릿 폭 $a$가 좁아질수록($a \downarrow$) 중앙 밝은 무늬 폭이 2배, 3배로 대폭 넓어집니다.
+          </div>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="logCurrentExperiment('단일슬릿')">데이터 기록장에 저장</button>
+        </div>
+      </div>
+
+      <div class="canvas-container">
+        <span class="canvas-label">단일 슬릿 회절 파면 + 필름 패턴 + $\text{sinc}^2(\beta)$ 광도 곡선</span>
+        <canvas id="canvas-single-slit" width="560" height="440"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 4: 3D 파동 중첩 수조 -->
+  <div id="tab-three-d-wave" class="tab-content">
+    <h2>3D 파동 중첩 및 간섭 수조 시뮬레이터 (Three.js 3D Ripple Tank)</h2>
+    <p style="color:var(--text-muted); margin-bottom:12px;">마우스 드래그로 3차원 공간을 자유롭게 회전·확대·축소하며 두 점파원에서 생성되는 마루와 골의 3차원 공간 중첩을 관찰할 수 있습니다.</p>
+    <div class="grid-layout">
+      <div class="controls-panel">
+        <div class="control-group">
+          <label>두 점파원 간격 ($d$): <span id="three-d-val" style="color:var(--primary-color); font-weight:bold;">12 단위</span></label>
+          <input type="range" id="three-d-slider" min="4" max="25" value="12" oninput="update3DParams()">
+        </div>
+        <div class="control-group">
+          <label>파동 파장 ($\lambda$): <span id="three-lambda-val" style="color:var(--primary-color); font-weight:bold;">5.0 단위</span></label>
+          <input type="range" id="three-lambda-slider" min="2.0" max="10.0" step="0.5" value="5.0" oninput="update3DParams()">
+        </div>
+        <div class="control-group">
+          <label>파원 위상차 ($\Delta\phi$): <span id="three-phase-val" style="color:var(--primary-color); font-weight:bold;">0° (동위상)</span></label>
+          <input type="range" id="three-phase-slider" min="0" max="180" step="30" value="0" oninput="update3DParams()">
+        </div>
+        <div class="control-group">
+          <label>전파 애니메이션 속도: <span id="three-speed-val" style="color:var(--primary-color); font-weight:bold;">1.0x</span></label>
+          <input type="range" id="three-speed-slider" min="0" max="3" step="0.2" value="1.0" oninput="update3DParams()">
+        </div>
+
+        <div class="info-card">
+          <h4>🌊 3D 간섭 수조 원리</h4>
+          <p>● <strong>붉은색 영역:</strong> 마루 + 마루 (보강 간섭 최대 높이)</p>
+          <p>● <strong>푸른색 영역:</strong> 골 + 골 (보강 간섭 최저 깊이)</p>
+          <p>● <strong>녹색/평평한 마디선(Nodal lines):</strong> 마루 + 골 상쇄 간섭 영역</p>
+        </div>
+      </div>
+
+      <div class="canvas-container" style="height:440px;">
+        <span class="canvas-label">Three.js 실시간 3D 간섭 표면 렌더링 (마우스 회전/줌 지원)</span>
+        <div id="three-container" style="width:100%; height:100%;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 5: 비누막 중력 유동 간섭 -->
+  <div id="tab-soap-film" class="tab-content">
+    <h2>세워진 비누막의 중력 흘러내림 & 박막 간섭 (Soap Film Interference)</h2>
+    <p style="color:var(--text-muted); margin-bottom:12px;">비누막이 중력에 의해 아래로 흘러내려 쐐기형 두께를 형성할 때 나타나는 스펙트럼 간섭 무늬와 최상단 암흑화(Black Film) 현상을 시뮬레이션합니다.</p>
+    <div class="grid-layout">
+      <div class="controls-panel">
+        <div class="control-group">
+          <label>흘러내린 시간 ($t$): <span id="sf-time-val" style="color:var(--primary-color); font-weight:bold;">0 초 / 60초 (자동 정지)</span></label>
+          <input type="range" id="sf-time" min="0" max="60" value="0" oninput="updateSoapSim()">
+        </div>
+        <div class="control-group">
+          <label>비누액 굴절률 ($n$): <span id="sf-n-val" style="color:var(--primary-color); font-weight:bold;">1.33</span></label>
+          <input type="range" id="sf-n" min="1.20" max="1.50" step="0.01" value="1.33" oninput="updateSoapSim()">
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-primary" id="btn-soap-play" onclick="toggleSoapPlay()">▶ 중력 흘러내림 재생</button>
+          <button class="btn btn-outline" onclick="resetSoap()">↺ 초기화</button>
+        </div>
+
+        <div class="info-card">
+          <h4>🧪 비누막 상태 정밀 분석</h4>
+          <p>● 최상단 두께 ($d_{\text{top}}$): <strong id="sf-top-d" style="color:#0f172a;">250 nm</strong></p>
+          <p>● 최하단 두께 ($d_{\text{bot}}$): <strong id="sf-bot-d" style="color:#0284c7;">850 nm</strong></p>
+          <div id="sf-status-badge" style="margin-top:10px; padding:10px; border-radius:6px; font-weight:bold; background:#e0f2fe; color:#0369a1;">
+            상태: 비누막 생성 직후 (전체 가로 무지개 줄무늬 균일 형성)
+          </div>
+          <div style="margin-top:8px; font-size:0.85rem; color:#475569;">
+            💡 <strong>상단 암흑화(Black Film) 원리:</strong> 상단 두께 $d \to 0$이 되면 광로차 $2nd \to 0$이지만, 앞면 반사(고정단, $\pi$ 위상 반전)와 뒷면 반사(자유단, 위상 불변)로 인해 두 반사파가 정반대 위상이 되어 완전 상쇄 간섭으로 검게 보입니다.
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-container">
+        <span class="canvas-label">좌: 비누막 측면 쐐기 두께 단면 | 우: 정면 원형 링 간섭 무늬</span>
+        <canvas id="canvas-soap-film" width="560" height="420"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 6: 오개념 클리닉 -->
+  <div id="tab-misconception" class="tab-content">
+    <h2>대표 오개념 교정 마당 (Misconception Clinic)</h2>
+    <div class="info-card" style="margin-bottom:16px;">
+      <h4 style="color:#b91c1c;">🚨 오개념 1: "비누막이 터지기 직전에 가장 얇아지면 빛이 보강 간섭하여 가장 밝게 빛난다?"</h4>
+      <p style="color:#334155; margin-top:6px;"><strong>정답 및 과학적 사실:</strong> <span class="badge badge-red">오개념</span><br>
+      비누막 두께 $d \to 0\text{ nm}$가 되면 광로차 $2nd \approx 0$이지만, <strong>앞면 반사(공기$\to$비누막, 고정단 반사 $\to 180^\circ$ 위상 변화)</strong>와 <strong>뒷면 반사(비누막$\to$공기, 자유단 반사 $\to$ 위상 불변)</strong>에 의해 두 반사파는 반대 위상을 갖습니다. 따라서 빛이 모두 상쇄되어 <strong>완전히 검은색(Black Film)</strong>으로 보입니다.</p>
+    </div>
+
+    <div class="info-card" style="margin-bottom:16px;">
+      <h4 style="color:#b91c1c;">🚨 오개념 2: "단일 슬릿 회절 무늬는 슬릿 폭 $a$가 넓어질수록 더 넓게 퍼진다?"</h4>
+      <p style="color:#334155; margin-top:6px;"><strong>정답 및 과학적 사실:</strong> <span class="badge badge-red">오개념</span><br>
+      단일 슬릿 중앙 무늬 폭 $2x_1 = \frac{2L\lambda}{a}$이므로 슬릿 폭 $a$와 무늬 폭은 <strong>반비례</strong>합니다. 즉, 슬릿 폭이 <strong>좁을수록</strong> 회절이 더 강하게 일어나 중앙 무늬가 넓게 펼쳐집니다.</p>
+    </div>
+
+    <div class="info-card">
+      <h4 style="color:#b91c1c;">🚨 오개념 3: "백색광을 쏘면 이중 슬릿에서 흑백 무늬가 나타난다?"</h4>
+      <p style="color:#334155; margin-top:6px;"><strong>정답 및 과학적 사실:</strong> <span class="badge badge-red">오개념</span><br>
+      백색광은 다양한 파장의 빛이 섞여 있습니다. 중앙($m=0$)은 경로차가 0이므로 모든 파장이 보강되어 <strong>흰색</strong>이 되지만, 주변부($m \ge 1$)는 무늬 간격 $\Delta x = \frac{L\lambda}{d}$가 파장에 비례하므로 파장이 긴 빨간색이 바깥쪽에, 파장이 짧은 보라색이 안쪽에 맺히며 <strong>화려한 연속 무지개 스펙트럼 간섭 무늬</strong>가 생깁니다.</p>
+    </div>
+  </div>
+
+  <!-- Tab 7: 첨단 기술 -->
+  <div id="tab-modern-tech" class="tab-content">
+    <h2>현대 정밀 기술 속 간섭과 회절 (Hologram & LIGO)</h2>
+    <div class="grid-layout">
+      <div class="info-card">
+        <h4>1. 3D 홀로그램 (Hologram) 원리</h4>
+        <p style="margin-bottom:6px;">● <strong>기록(Recording):</strong> 레이저를 물체광과 기준광으로 나누어 필름에서 간섭시켜 3차원 입체 정보(위상과 진폭)를 마이크로 간섭무늬 형태로 기록.</p>
+        <p>● <strong>재생(Reconstruction):</strong> 간섭무늬가 기록된 필름에 기준광 레이저를 비추면 회절 현상에 의해 원래 물체에서 나오던 파면이 완벽히 복원되어 허공에 입체 영상 형성.</p>
+      </div>
+
+      <div class="info-card">
+        <h4>2. LIGO 중력파 레이저 간섭계</h4>
+        <p style="margin-bottom:6px;">● 4km 길이의 직각 진공 파이프 2개에 레이저를 쏘아 거울에서 반사시킨 뒤 마이컬슨 간섭계로 상쇄 간섭 상태를 유지.</p>
+        <p>● 시공간을 흔드는 중력파가 통과하면 두 팔의 길이가 양성자 지름의 $1/10000$ 수준으로 미세하게 변하며 상쇄가 깨져 광검출기에 신호가 감지됨.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 8: 탐구 데이터 기록 -->
+  <div id="tab-results" class="tab-content">
+    <h2>실시간 실험 데이터 수집 및 분석 모듈</h2>
+    <div class="btn-group" style="margin-bottom:14px;">
+      <button class="btn btn-primary" onclick="downloadCSV()">📥 CSV 파일로 내보내기</button>
+      <button class="btn btn-outline" onclick="clearTable()">🗑️ 기록 초기화</button>
+    </div>
+    <table id="experiment-table">
+      <thead>
+        <tr>
+          <th>회차</th>
+          <th>실험 종류</th>
+          <th>파장 $\lambda$ (nm)</th>
+          <th>슬릿 크기 (mm)</th>
+          <th>스크린 거리 $L$ (m)</th>
+          <th>계산된 무늬 간격/폭 (mm)</th>
+          <th>기록 시각</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  let currentTab = 'concept';
+  let threeScene, threeCamera, threeRenderer, threeControls, threeMesh;
+  let threeAnimId;
+  let waveTime = 0;
+
+  function switchTab(tabId) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    
+    event.currentTarget.classList.add('active');
+    document.getElementById('tab-' + tabId).classList.add('active');
+    currentTab = tabId;
+
+    if (tabId === 'double-slit') updateDoubleSlit();
+    if (tabId === 'single-slit') updateSingleSlit();
+    if (tabId === 'soap-film') updateSoapSim();
+    if (tabId === 'three-d-wave') {
+      setTimeout(() => {
+        initThreeD();
+      }, 50);
+    }
+
+    if (window.MathJax && MathJax.typesetPromise) {
+      MathJax.typesetPromise();
+    }
+  }
+
+  // Wavelength to RGB Converter
+  function wavelengthToRGB(wavelength, alpha = 1.0) {
+    let r, g, b;
+    if (wavelength >= 380 && wavelength < 440) {
+      r = -(wavelength - 440) / (440 - 380); g = 0.0; b = 1.0;
+    } else if (wavelength >= 440 && wavelength < 490) {
+      r = 0.0; g = (wavelength - 440) / (490 - 440); b = 1.0;
+    } else if (wavelength >= 490 && wavelength < 510) {
+      r = 0.0; g = 1.0; b = -(wavelength - 510) / (510 - 490);
+    } else if (wavelength >= 510 && wavelength < 580) {
+      r = (wavelength - 510) / (580 - 510); g = 1.0; b = 0.0;
+    } else if (wavelength >= 580 && wavelength < 645) {
+      r = 1.0; g = -(wavelength - 645) / (645 - 580); b = 0.0;
+    } else if (wavelength >= 645 && wavelength <= 750) {
+      r = 1.0; g = 0.0; b = 0.0;
+    } else {
+      r = 0.0; g = 0.0; b = 0.0;
+    }
+    return `rgba(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)}, ${alpha})`;
+  }
+
+  // 1. DOUBLE SLIT SIMULATION
+  function updateDoubleSlit() {
+    const lambda = parseFloat(document.getElementById('ds-lambda').value); // nm
+    const d = parseFloat(document.getElementById('ds-d').value);           // mm
+    const a = parseFloat(document.getElementById('ds-a').value);           // mm
+    const L = parseFloat(document.getElementById('ds-L').value);           // m
+
+    document.getElementById('ds-lambda-val').innerText = `${lambda} nm`;
+    document.getElementById('ds-d-val').innerText = `${d.toFixed(2)} mm`;
+    document.getElementById('ds-a-val').innerText = `${a.toFixed(3)} mm`;
+    document.getElementById('ds-L-val').innerText = `${L.toFixed(1)} m`;
+
+    const deltaX = (L * (lambda * 1e-9) / (d * 1e-3)) * 1000; // mm
+    const envWidth = (2 * L * (lambda * 1e-9) / (a * 1e-3)) * 1000; // mm
+    const fringeCount = Math.round(2 * d / a);
+
+    document.getElementById('ds-fringe-spacing').innerText = `${deltaX.toFixed(2)} mm`;
+    document.getElementById('ds-envelope-width').innerText = `${envWidth.toFixed(1)} mm`;
+    document.getElementById('ds-fringes-count').innerText = `${fringeCount} 개`;
+
+    drawDoubleSlitCanvas(lambda, d, a, L);
+  }
+
+  function drawDoubleSlitCanvas(lambda, d, a, L) {
+    const cvs = document.getElementById('canvas-double-slit');
+    const ctx = cvs.getContext('2d');
+    const w = cvs.width, h = cvs.height;
+    ctx.clearRect(0, 0, w, h);
+
+    const cx = w / 2;
+
+    // Top Wave propagation from dual slits
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, w, h);
+
+    const slitY = 55;
+    const slitSepPx = Math.max(16, Math.min(80, d * 100));
+
+    // Barrier
+    ctx.fillStyle = '#64748b';
+    ctx.fillRect(15, slitY - 4, cx - slitSepPx/2 - 15, 8);
+    ctx.fillRect(cx - slitSepPx/2 + 6, slitY - 4, slitSepPx - 12, 8);
+    ctx.fillRect(cx + slitSepPx/2 + 6, slitY - 4, w - 15 - (cx + slitSepPx/2 + 6), 8);
+
+    // Wavefront arcs from S1 and S2
+    ctx.strokeStyle = wavelengthToRGB(lambda, 0.45);
+    ctx.lineWidth = 1.5;
+    for (let r = 10; r <= 80; r += 12) {
+      ctx.beginPath();
+      ctx.arc(cx - slitSepPx/2, slitY, r, 0, Math.PI);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(cx + slitSepPx/2, slitY, r, 0, Math.PI);
+      ctx.stroke();
+    }
+
+    // Fringe strip on dark screen (Middle: y: 150 to 220)
+    const filmY = 150, filmH = 60;
+    ctx.fillStyle = '#050505';
+    ctx.fillRect(20, filmY, w - 40, filmH);
+
+    const k = (2 * Math.PI) / (lambda * 1e-9);
+    const dMeter = d * 1e-3;
+    const aMeter = a * 1e-3;
+
+    for (let px = 20; px <= w - 20; px++) {
+      let xScreen = ((px - cx) / 180) * 0.02; // scale to 20mm
+      let theta = xScreen / L;
+      let alpha = (Math.PI * dMeter / (lambda * 1e-9)) * theta;
+      let beta = (Math.PI * aMeter / (lambda * 1e-9)) * theta;
+
+      let diffraction = (Math.abs(beta) < 1e-5) ? 1.0 : Math.pow(Math.sin(beta)/beta, 2);
+      let interference = Math.pow(Math.cos(alpha), 2);
+      let I = diffraction * interference;
+
+      ctx.strokeStyle = wavelengthToRGB(lambda, Math.min(1.0, Math.sqrt(I)));
+      ctx.beginPath();
+      ctx.moveTo(px, filmY);
+      ctx.lineTo(px, filmY + filmH);
+      ctx.stroke();
+    }
+    ctx.strokeStyle = '#475569';
+    ctx.strokeRect(20, filmY, w - 40, filmH);
+
+    // Intensity curve graph (Bottom: y: 240 to 420)
+    const baseY = 410, maxH = 150;
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '11px sans-serif';
+    ctx.fillText('광도 분포 곡선 I(θ) = I₀ [sin(β)/β]² cos²(α)', 25, 245);
+
+    // Base axis
+    ctx.strokeStyle = '#475569';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(20, baseY); ctx.lineTo(w - 20, baseY);
+    ctx.stroke();
+
+    // Fill curve
+    ctx.beginPath();
+    for (let px = 20; px <= w - 20; px++) {
+      let xScreen = ((px - cx) / 180) * 0.02;
+      let theta = xScreen / L;
+      let alpha = (Math.PI * dMeter / (lambda * 1e-9)) * theta;
+      let beta = (Math.PI * aMeter / (lambda * 1e-9)) * theta;
+
+      let diffraction = (Math.abs(beta) < 1e-5) ? 1.0 : Math.pow(Math.sin(beta)/beta, 2);
+      let interference = Math.pow(Math.cos(alpha), 2);
+      let I = diffraction * interference;
+      let py = baseY - I * maxH;
+
+      if (px === 20) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.strokeStyle = wavelengthToRGB(lambda, 1.0);
+    ctx.lineWidth = 2.2;
+    ctx.stroke();
+
+    // Draw diffraction envelope (dashed)
+    ctx.setLineDash([4, 4]);
+    ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+    ctx.beginPath();
+    for (let px = 20; px <= w - 20; px++) {
+      let xScreen = ((px - cx) / 180) * 0.02;
+      let theta = xScreen / L;
+      let beta = (Math.PI * aMeter / (lambda * 1e-9)) * theta;
+      let diffraction = (Math.abs(beta) < 1e-5) ? 1.0 : Math.pow(Math.sin(beta)/beta, 2);
+      let py = baseY - diffraction * maxH;
+      if (px === 20) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // 2. SINGLE SLIT SIMULATION
+  function updateSingleSlit() {
+    const lambda = parseFloat(document.getElementById('ss-lambda').value); // nm
+    const a = parseFloat(document.getElementById('ss-a').value);           // mm
+    const L = parseFloat(document.getElementById('ss-L').value);           // m
+
+    document.getElementById('ss-lambda-val').innerText = `${lambda} nm`;
+    document.getElementById('ss-a-val').innerText = `${a.toFixed(2)} mm`;
+    document.getElementById('ss-L-val').innerText = `${L.toFixed(1)} m`;
+
+    const sinTheta = (lambda * 1e-9) / (a * 1e-3);
+    const deg = (sinTheta * 180 / Math.PI).toFixed(3);
+    const widthMm = (2 * L * (lambda * 1e-9) / (a * 1e-3)) * 1000;
+
+    document.getElementById('ss-theta-val').innerText = `${sinTheta.toFixed(5)} rad (${deg}°)`;
+    document.getElementById('ss-width-val').innerText = `${widthMm.toFixed(2)} mm`;
+
+    drawSingleSlitCanvas(lambda, a, L);
+  }
+
+  function drawSingleSlitCanvas(lambda, a, L) {
+    const cvs = document.getElementById('canvas-single-slit');
+    const ctx = cvs.getContext('2d');
+    const w = cvs.width, h = cvs.height;
+    ctx.clearRect(0, 0, w, h);
+
+    const cx = w / 2;
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, w, h);
+
+    // Top: Plane wave & aperture
+    const slitY = 55;
+    const aperturePx = Math.max(14, Math.min(70, a * 300));
+
+    ctx.fillStyle = '#64748b';
+    ctx.fillRect(15, slitY - 4, cx - aperturePx/2 - 15, 8);
+    ctx.fillRect(cx + aperturePx/2, slitY - 4, w - 15 - (cx + aperturePx/2), 8);
+
+    // Spreading wave arcs
+    ctx.strokeStyle = wavelengthToRGB(lambda, 0.5);
+    ctx.lineWidth = 1.8;
+    for (let r = 12; r <= 80; r += 14) {
+      ctx.beginPath();
+      ctx.arc(cx, slitY, r, 0.1, Math.PI - 0.1);
+      ctx.stroke();
+    }
+
+    // Screen strip (Middle)
+    const filmY = 150, filmH = 60;
+    ctx.fillStyle = '#050505';
+    ctx.fillRect(20, filmY, w - 40, filmH);
+
+    const aMeter = a * 1e-3;
+    for (let px = 20; px <= w - 20; px++) {
+      let xScreen = ((px - cx) / 180) * 0.025;
+      let theta = xScreen / L;
+      let beta = (Math.PI * aMeter / (lambda * 1e-9)) * theta;
+      let I = (Math.abs(beta) < 1e-5) ? 1.0 : Math.pow(Math.sin(beta)/beta, 2);
+
+      ctx.strokeStyle = wavelengthToRGB(lambda, Math.min(1.0, Math.sqrt(I)));
+      ctx.beginPath();
+      ctx.moveTo(px, filmY);
+      ctx.lineTo(px, filmY + filmH);
+      ctx.stroke();
+    }
+    ctx.strokeStyle = '#475569';
+    ctx.strokeRect(20, filmY, w - 40, filmH);
+
+    // Intensity curve
+    const baseY = 410, maxH = 150;
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '11px sans-serif';
+    ctx.fillText('단일 슬릿 회절 광도 sinc²(β) 곡선', 25, 245);
+
+    ctx.strokeStyle = '#475569';
+    ctx.beginPath();
+    ctx.moveTo(20, baseY); ctx.lineTo(w - 20, baseY);
+    ctx.stroke();
+
+    ctx.beginPath();
+    for (let px = 20; px <= w - 20; px++) {
+      let xScreen = ((px - cx) / 180) * 0.025;
+      let theta = xScreen / L;
+      let beta = (Math.PI * aMeter / (lambda * 1e-9)) * theta;
+      let I = (Math.abs(beta) < 1e-5) ? 1.0 : Math.pow(Math.sin(beta)/beta, 2);
+      let py = baseY - I * maxH;
+
+      if (px === 20) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.strokeStyle = wavelengthToRGB(lambda, 1.0);
+    ctx.lineWidth = 2.2;
+    ctx.stroke();
+  }
+
+  // 3. THREE.JS 3D WAVE INTERFERENCE
+  function initThreeD() {
+    const container = document.getElementById('three-container');
+    if (!container || container.clientWidth === 0) return;
+
+    if (threeRenderer) {
+      threeRenderer.setSize(container.clientWidth, container.clientHeight);
+      threeCamera.aspect = container.clientWidth / container.clientHeight;
+      threeCamera.updateProjectionMatrix();
+      return;
+    }
+
+    threeScene = new THREE.Scene();
+    threeScene.background = new THREE.Color(0x0a1128);
+
+    threeCamera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+    threeCamera.position.set(0, 45, 55);
+
+    threeRenderer = new THREE.WebGLRenderer({ antialias: true });
+    threeRenderer.setSize(container.clientWidth, container.clientHeight);
+    container.appendChild(threeRenderer.domElement);
+
+    threeControls = new THREE.OrbitControls(threeCamera, threeRenderer.domElement);
+    threeControls.enableDamping = true;
+
+    // Ambient light & directional light
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    threeScene.add(ambientLight);
+
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    dirLight.position.set(20, 40, 20);
+    threeScene.add(dirLight);
+
+    // Plane geometry with vertex elevation
+    const geo = new THREE.PlaneGeometry(60, 60, 100, 100);
+    geo.rotateX(-Math.PI / 2);
+
+    const mat = new THREE.MeshPhongMaterial({
+      color: 0x0284c7,
+      wireframe: true,
+      shininess: 80,
+      side: THREE.DoubleSide
+    });
+
+    threeMesh = new THREE.Mesh(geo, mat);
+    threeScene.add(threeMesh);
+
+    // Grid helper
+    const grid = new THREE.GridHelper(60, 20, 0x1e293b, 0x0f172a);
+    grid.position.y = -2;
+    threeScene.add(grid);
+
+    animateThreeD();
+  }
+
+  function update3DParams() {
+    const d = parseFloat(document.getElementById('three-d-slider').value);
+    const lam = parseFloat(document.getElementById('three-lambda-slider').value);
+    const phiDeg = parseFloat(document.getElementById('three-phase-slider').value);
+    const speed = parseFloat(document.getElementById('three-speed-slider').value);
+
+    document.getElementById('three-d-val').innerText = `${d} 단위`;
+    document.getElementById('three-lambda-val').innerText = `${lam.toFixed(1)} 단위`;
+    document.getElementById('three-phase-val').innerText = `${phiDeg}°`;
+    document.getElementById('three-speed-val').innerText = `${speed.toFixed(1)}x`;
+  }
+
+  function animateThreeD() {
+    threeAnimId = requestAnimationFrame(animateThreeD);
+    if (!threeMesh || currentTab !== 'three-d-wave') return;
+
+    const d = parseFloat(document.getElementById('three-d-slider').value);
+    const lam = parseFloat(document.getElementById('three-lambda-slider').value);
+    const phi = (parseFloat(document.getElementById('three-phase-slider').value) * Math.PI) / 180;
+    const speed = parseFloat(document.getElementById('three-speed-slider').value);
+
+    waveTime += 0.05 * speed;
+
+    const k = (2 * Math.PI) / lam;
+    const pos = threeMesh.geometry.attributes.position;
+    const s1 = { x: -d / 2, z: -15 };
+    const s2 = { x: d / 2, z: -15 };
+
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i);
+      const z = pos.getZ(i);
+
+      const r1 = Math.sqrt((x - s1.x)**2 + (z - s1.z)**2);
+      const r2 = Math.sqrt((x - s2.x)**2 + (z - s2.z)**2);
+
+      const a1 = 2.0 / (1.0 + 0.05 * r1);
+      const a2 = 2.0 / (1.0 + 0.05 * r2);
+
+      const y = a1 * Math.sin(k * r1 - waveTime) + a2 * Math.sin(k * r2 - waveTime + phi);
+      pos.setY(i, y);
+    }
+    pos.needsUpdate = true;
+    threeControls.update();
+    threeRenderer.render(threeScene, threeCamera);
+  }
+
+  // 4. SOAP FILM SIMULATION
+  let soapTimer = null;
+  let soapPlaying = false;
+
+  function updateSoapSim() {
+    const t = parseInt(document.getElementById('sf-time').value);
+    const n = parseFloat(document.getElementById('sf-n').value);
+
+    document.getElementById('sf-time-val').innerText = `${t} 초 / 60초`;
+    document.getElementById('sf-n-val').innerText = n.toFixed(2);
+
+    let dTop = Math.max(0, 250 - t * 4.8);
+    let dBot = 850 + t * 14.0;
+
+    document.getElementById('sf-top-d').innerText = `${Math.round(dTop)} nm`;
+    document.getElementById('sf-bot-d').innerText = `${Math.round(dBot)} nm`;
+
+    const badge = document.getElementById('sf-status-badge');
+    if (dTop < 25) {
+      badge.innerText = "상태: 비누막 최상단 암흑화(Black Film) 상쇄 간섭 영역 확장 및 정지 단계";
+      badge.style.background = "#fee2e2";
+      badge.style.color = "#991b1b";
+    } else if (t > 15) {
+      badge.innerText = "상태: 중력 유동 진행 (상단 얇아짐, 가로 줄무늬 하방 이동 및 하단 조밀화)";
+      badge.style.background = "#fef3c7";
+      badge.style.color = "#92400e";
+    } else {
+      badge.innerText = "상태: 비누막 생성 직후 (전체 가로 무지개 줄무늬 형성)";
+      badge.style.background = "#e0f2fe";
+      badge.style.color = "#0369a1";
+    }
+
+    drawSoapCanvas(dTop, dBot, n);
+  }
+
+  function toggleSoapPlay() {
+    soapPlaying = !soapPlaying;
+    const btn = document.getElementById('btn-soap-play');
+    if (soapPlaying) {
+      btn.innerText = "⏸️ 일시 정지";
+      soapTimer = setInterval(() => {
+        let slider = document.getElementById('sf-time');
+        let val = parseInt(slider.value) + 1;
+        if (val >= 60) {
+          slider.value = 60;
+          updateSoapSim();
+          toggleSoapPlay();
+          return;
+        }
+        slider.value = val;
+        updateSoapSim();
+      }, 100);
+    } else {
+      btn.innerText = "▶ 중력 흘러내림 재생";
+      clearInterval(soapTimer);
+    }
+  }
+
+  function resetSoap() {
+    document.getElementById('sf-time').value = 0;
+    if (soapPlaying) toggleSoapPlay();
+    updateSoapSim();
+  }
+
+  function drawSoapCanvas(dTop, dBot, n) {
+    const cvs = document.getElementById('canvas-soap-film');
+    const ctx = cvs.getContext('2d');
+    const w = cvs.width, h = cvs.height;
+    ctx.clearRect(0, 0, w, h);
+
+    // Left: Wedge profile
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(10, 10, 180, h - 20);
+    ctx.strokeStyle = '#475569';
+    ctx.strokeRect(10, 10, 180, h - 20);
+
+    ctx.fillStyle = '#e2e8f0';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.fillText('측면 두께 쐐기 단면 (Wedge)', 20, 32);
+
+    const topY = 55, botY = h - 35, profH = botY - topY;
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(35, topY); ctx.lineTo(35, botY);
+    ctx.stroke();
+
+    ctx.strokeStyle = '#f59e0b';
+    ctx.beginPath();
+    for (let py = topY; py <= botY; py++) {
+      let ratio = (py - topY) / profH;
+      let d = dTop + Math.pow(ratio, 1.4) * (dBot - dTop);
+      let thickPx = (d / 1800) * 120;
+      let bx = 35 + thickPx;
+      if (py === topY) ctx.moveTo(bx, py);
+      else ctx.lineTo(bx, py);
+    }
+    ctx.stroke();
+
+    ctx.fillStyle = '#cbd5e1';
+    ctx.font = '11px sans-serif';
+    ctx.fillText(`상단: ${Math.round(dTop)}nm`, 42, topY + 15);
+    ctx.fillText(`하단: ${Math.round(dBot)}nm`, 42, botY - 10);
+
+    // Right: Circular soap film view
+    const ringX = 370, ringY = h / 2, radius = 140;
+
+    // Metal wire loop ring
+    ctx.strokeStyle = '#d97706';
+    ctx.lineWidth = 10;
+    ctx.beginPath();
+    ctx.arc(ringX, ringY, radius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Clip circular film area
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(ringX, ringY, radius - 5, 0, Math.PI * 2);
+    ctx.clip();
+
+    const filmTop = ringY - radius;
+    const filmBot = ringY + radius;
+    const filmH = radius * 2;
+
+    for (let py = filmTop; py <= filmBot; py++) {
+      let ratio = (py - filmTop) / filmH;
+      let d = dTop + Math.pow(ratio, 1.4) * (dBot - dTop);
+
+      if (d < 30) {
+        ctx.fillStyle = '#050505'; // Black film
+      } else {
+        let r = getSoapReflectance(650, d, n);
+        let g = getSoapReflectance(532, d, n);
+        let b = getSoapReflectance(460, d, n);
+        ctx.fillStyle = `rgb(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)})`;
+      }
+      ctx.fillRect(ringX - radius, py, radius * 2, 1);
+    }
+    ctx.restore();
+  }
+
+  function getSoapReflectance(lam, d, n) {
+    let delta = (4 * Math.PI * n * d) / lam + Math.PI;
+    let R = Math.pow(Math.cos(delta / 2), 2);
+    return Math.max(0.05, Math.min(1.0, R));
+  }
+
+  // 5. DATA LOGGING
+  let expCount = 0;
+  const loggedData = [];
+
+  function logCurrentExperiment(type) {
+    expCount++;
+    const now = new Date().toLocaleTimeString();
+    let row = {};
+
+    if (type === '이중슬릿') {
+      const lambda = document.getElementById('ds-lambda').value;
+      const d = document.getElementById('ds-d').value;
+      const L = document.getElementById('ds-L').value;
+      const sp = document.getElementById('ds-fringe-spacing').innerText;
+      row = { id: expCount, type: '이중 슬릿 간섭', lambda, size: `d=${d}mm`, L: `${L}m`, res: sp, time: now };
+    } else {
+      const lambda = document.getElementById('ss-lambda').value;
+      const a = document.getElementById('ss-a').value;
+      const L = document.getElementById('ss-L').value;
+      const w = document.getElementById('ss-width-val').innerText;
+      row = { id: expCount, type: '단일 슬릿 회절', lambda, size: `a=${a}mm`, L: `${L}m`, res: w, time: now };
+    }
+
+    loggedData.push(row);
+    renderTable();
+    alert(`[${row.type}] 데이터가 기록장에 저장되었습니다.`);
+  }
+
+  function renderTable() {
+    const tbody = document.querySelector('#experiment-table tbody');
+    tbody.innerHTML = '';
+    loggedData.forEach(d => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${d.id}</td><td><strong>${d.type}</strong></td><td>${d.lambda} nm</td><td>${d.size}</td><td>${d.L}</td><td>${d.res}</td><td>${d.time}</td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function clearTable() {
+    if (confirm('기록된 모든 데이터를 초기화하시겠습니까?')) {
+      loggedData.length = 0;
+      expCount = 0;
+      renderTable();
+    }
+  }
+
+  function downloadCSV() {
+    if (loggedData.length === 0) {
+      alert('저장된 데이터가 없습니다. 먼저 실험 데이터를 기록해주세요.');
+      return;
+    }
+    let csv = '\uFEFF회차,실험종류,파장(nm),슬릿크기,스크린거리,무늬간격/폭,기록시각\n';
+    loggedData.forEach(d => {
+      csv += `${d.id},${d.type},${d.lambda},${d.size},${d.L},"${d.res}",${d.time}\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = '간섭과회절_탐구데이터.csv';
+    link.click();
+  }
+
+  window.onload = function() {
+    updateDoubleSlit();
+    updateSingleSlit();
+    updateSoapSim();
+  };
+</script>
+
+</body>
+</html>
