@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>03. 편광 - 물리학 탐구 시뮬레이션 웹앱</title>
+    <script>
+    window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']] }, options: { ignoreHtmlClass: 'tex2jax_ignore', processHtmlClass: 'tex2jax_process' } };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root { --primary-color: #6366f1; --secondary-color: #4f46e5; --bg-color: #f8fafc; --card-bg: #ffffff; --text-color: #1e293b; --border-color: #cbd5e1; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Pretendard', sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); line-height: 1.6; padding: 15px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .nav-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; background: #e2e8f0; padding: 6px; border-radius: 10px; }
+        .tab-btn { flex: 1 1 auto; min-width: 120px; padding: 10px 15px; border: none; background: transparent; color: #475569; font-weight: 600; font-size: 0.9rem; border-radius: 6px; cursor: pointer; text-align: center; }
+        .tab-btn.active { background: white; color: var(--primary-color); box-shadow: 0 2px 5px rgba(0,0,0,0.08); }
+        .tab-content { display: none; background: var(--card-bg); padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .tab-content.active { display: block; }
+        .grid-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 850px) { .grid-layout { grid-template-columns: 1fr; } }
+        .controls-panel { background: #f8fafc; padding: 18px; border-radius: 10px; border: 1px solid var(--border-color); }
+        .control-group { margin-bottom: 15px; }
+        .control-group label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 0.9rem; color: #334155; }
+        .control-group input[type="range"] { width: 100%; height: 6px; border-radius: 3px; accent-color: var(--primary-color); }
+        canvas { width: 100%; height: auto; background: #0f172a; border-radius: 8px; display: block; }
+        .math-box { background: #eef2ff; border-left: 4px solid var(--primary-color); padding: 14px 18px; margin: 14px 0; border-radius: 0 8px 8px 0; }
+        .math-expr { font-family: 'Times New Roman', serif; font-size: 1.1rem; font-style: italic; background: #fff; padding: 6px 10px; border-radius: 6px; border: 1px solid #cbd5e1; display: inline-block; margin: 4px 0; }
+        .info-card { background: #fff; border: 1px solid var(--border-color); padding: 15px; border-radius: 8px; margin-top: 15px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.88rem; }
+        th, td { border: 1px solid var(--border-color); padding: 8px 12px; text-align: center; }
+        th { background: #f1f5f9; }
+        .btn { background: var(--primary-color); color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        .canvas-container { position: relative; }
+        .canvas-label { position: absolute; top: 10px; left: 10px; color: #fff; background: rgba(0,0,0,0.7); padding: 4px 10px; border-radius: 4px; font-size: 0.82rem; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>03. 편광 탐구 시뮬레이션 웹앱</h1>
+        <p>2022 개정 교육과정 [전자기와 양자] | 교과서 66쪽~71쪽 연계 빛의 편광 및 디스플레이 기술</p>
+    </header>
+
+    <div class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('concept')">1. 개념 확인</button>
+        <button class="tab-btn" onclick="switchTab('malus')">2. 편광판과 투과율</button>
+        <button class="tab-btn" onclick="switchTab('display')">3. LCD vs OLED 탐구</button>
+        <button class="tab-btn" onclick="switchTab('quantum')">4. 광자 편광 보안 통신</button>
+        <button class="tab-btn" onclick="switchTab('results')">5. 탐구 결과 기록</button>
+    </div>
+
+    <!-- 1. 개념 확인 -->
+    <div id="tab-concept" class="tab-content active">
+        <h2>빛의 편광 및 말루스 법칙</h2>
+        <div class="grid-layout">
+            <div>
+                <div class="math-box">
+                    <strong>1. 말루스 법칙 (Malus's Law):</strong><br>
+                    <div class="math-expr">I = I_0 cos^2(θ)</div><br>
+                    ● θ = 0° (나란함): 최대 밝기 I = I_0<br>
+                    ● θ = 90° (수직): 빛 완전 차단 I = 0
+                </div>
+                <div class="math-box">
+                    <strong>2. 자연광 편광판 통과 시:</strong><br>
+                    <div class="math-expr">I_1 = I_{자연광} / 2</div> (자연광은 1개 편광판 통과 시 세기가 절반으로 감소)
+                </div>
+            </div>
+            <div class="info-card">
+                <h4>편광 및 디스플레이 핵심</h4>
+                <ul>
+                    <li><strong>LCD:</strong> 백라이트 + 선형 편광판 + 액정. 외부 편광판 회전 시 밝기 변화 관찰됨.</li>
+                    <li><strong>OLED:</strong> 자발광 다이오드 + 원형 편광판(반사 방지용). 편광판 회전 시에도 밝기 변화 없음.</li>
+                    <li><strong>양자 편광 통신:</strong> 광자의 수직/수평, 대각선/역대각선 편광 상태로 0과 1 매핑 → 도청 시 편광 상태 변형으로 즉시 감지.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. 편광판과 투과율 -->
+    <div id="tab-malus" class="tab-content">
+        <h2>두 편광판 회전 각도(θ)에 따른 투과 광도 시뮬레이션</h2>
+        <div class="grid-layout">
+            <div class="controls-panel">
+                <div class="control-group">
+                    <label for="pol-angle">편광판 B 회전 각도 (θ): <span id="pol-angle-val">0</span>°</label>
+                    <input type="range" id="pol-angle" min="0" max="180" value="0" oninput="updatePolSim()">
+                </div>
+                <div class="info-card">
+                    <h4>실시간 계산 결과</h4>
+                    <p>● 투과 광도 비율 (I / I_0): <strong id="pol-intensity-res" style="color:var(--primary-color);">100.0 %</strong></p>
+                    <p id="pol-status-desc" style="font-weight:bold; color:#16a34a;">상태: 두 편광판의 편광축이 나란하여 빛이 100% 투과합니다.</p>
+                </div>
+            </div>
+            <div class="canvas-container">
+                <span class="canvas-label">편광판 회전 및 투과 전기장 벡터 시각화</span>
+                <canvas id="canvas-pol" width="500" height="350"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. LCD vs OLED 탐구 -->
+    <div id="tab-display" class="tab-content">
+        <h2>LCD vs OLED 디스플레이 편광 조사 시뮬레이션</h2>
+        <div class="grid-layout">
+            <div class="controls-panel">
+                <div class="control-group">
+                    <label for="disp-type">디스플레이 종성 선택:</label>
+                    <select id="disp-type" onchange="updateDispSim()" style="width:100%; padding:8px; border-radius:6px; border:1px solid #cbd5e1;">
+                        <option value="lcd">노트북 / 구형 스마트폰 (LCD)</option>
+                        <option value="oled">최신 TV / 프리미엄 스마트폰 (OLED)</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="disp-angle">스마트폰 조도 센서 편광 필터 각도: <span id="disp-angle-val">0</span>°</label>
+                    <input type="range" id="disp-angle" min="0" max="180" step="20" value="0" oninput="updateDispSim()">
+                </div>
+                <div class="info-card">
+                    <h4>조도 측정 결과</h4>
+                    <p>● 측정 조도 (Lux): <strong id="disp-lux-res" style="color:var(--primary-color);">10.0 Lux</strong></p>
+                    <p id="disp-eval-text">LCD 분석: 선형 편광판이 포함되어 있어 각도에 따라 조도가 주기적으로 변합니다.</p>
+                </div>
+            </div>
+            <div class="canvas-container">
+                <span class="canvas-label">디스플레이 내부 편광판 반응 시각화</span>
+                <canvas id="canvas-disp" width="500" height="350"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. 광자 편광 통신 -->
+    <div id="tab-quantum" class="tab-content">
+        <h2>광자 편광 상태 매핑 기반 양자 보안 통신</h2>
+        <div class="info-card">
+            <h4>광자 편광 0 과 1 대응 원리</h4>
+            <p>● 수직/수평 편광 필터: 수직 편광 = 0, 수평 편광 = 1</p>
+            <p>● 대각선/역대각선 편광 필터: 대각선 편광 = 0, 역대각선 편광 = 1</p>
+            <p>● 도청 감지: 도청자가 임의의 측정 필터로 접근하면 양자 붕괴로 광자의 편광 상태가 무작위로 변하여 수신자가 도청 시도를 100% 감지함.</p>
+        </div>
+    </div>
+
+    <!-- 5. 결과 기록 -->
+    <div id="tab-results" class="tab-content">
+        <h2>실시간 실험 데이터 수집 모듈</h2>
+        <button class="btn" onclick="logPolData()">현재 편광 각도 데이터 기록하기</button>
+        <table id="pol-log-table">
+            <thead>
+                <tr><th>회차</th><th>각도 θ (°)</th><th>cos^2(θ)</th><th>투과 비율 (%)</th></tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function switchTab(t) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+        document.getElementById('tab-' + t).classList.add('active');
+        if (t === 'malus') updatePolSim();
+        if (t === 'display') updateDispSim();
+    }
+
+    function updatePolSim() {
+        const deg = parseInt(document.getElementById('pol-angle').value);
+        document.getElementById('pol-angle-val').innerText = deg;
+
+        const rad = (deg * Math.PI) / 180;
+        const ratio = Math.pow(Math.cos(rad), 2);
+        const percent = ratio * 100;
+
+        document.getElementById('pol-intensity-res').innerText = percent.toFixed(1) + " %";
+
+        const desc = document.getElementById('pol-status-desc');
+        if (deg === 90) {
+            desc.innerText = "상태: 두 편광판 편광축이 수직이어서 빛이 완전히 차단됩니다 (I = 0).";
+            desc.style.color = "#dc2626";
+        } else if (deg === 0 || deg === 180) {
+            desc.innerText = "상태: 두 편광판 편광축이 나란하여 빛이 100% 투과합니다.";
+            desc.style.color = "#16a34a";
+        } else {
+            desc.innerText = `상태: 말루스 법칙(I = I_0 cos²${deg}°)에 따라 빛의 세기가 조절됩니다.`;
+            desc.style.color = "#4f46e5";
+        }
+
+        drawPolCanvas(deg, ratio);
+    }
+
+    function drawPolCanvas(deg, ratio) {
+        const cvs = document.getElementById('canvas-pol');
+        const ctx = cvs.getContext('2d');
+        const w = cvs.width, h = cvs.height;
+        ctx.clearRect(0, 0, w, h);
+
+        const cy = h / 2;
+
+        // Polarizer A
+        ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 4;
+        ctx.strokeRect(120, cy - 80, 20, 160);
+        ctx.fillStyle = '#cbd5e1'; ctx.fillText('편광판 A (수직)', 100, cy + 100);
+
+        // Polarizer B
+        ctx.save();
+        ctx.translate(320, cy);
+        ctx.rotate((deg * Math.PI) / 180);
+        ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 4;
+        ctx.strokeRect(-10, -80, 20, 160);
+        ctx.restore();
+        ctx.fillStyle = '#cbd5e1'; ctx.fillText(`편광판 B (${deg}°)`, 300, cy + 100);
+
+        // Light Beam Transmission
+        ctx.strokeStyle = `rgba(245, 158, 11, ${ratio})`;
+        ctx.lineWidth = 12 * Math.max(0.1, ratio);
+        ctx.beginPath(); ctx.moveTo(330, cy); ctx.lineTo(460, cy); ctx.stroke();
+    }
+
+    function updateDispSim() {
+        const type = document.getElementById('disp-type').value;
+        const deg = parseInt(document.getElementById('disp-angle').value);
+        document.getElementById('disp-angle-val').innerText = deg;
+
+        let lux = 10.0;
+        const evalEl = document.getElementById('disp-eval-text');
+
+        if (type === 'lcd') {
+            const rad = (deg * Math.PI) / 180;
+            lux = 10.0 * Math.pow(Math.cos(rad), 2);
+            evalEl.innerText = "LCD 분석: 선형 편광판이 포함되어 있어 측정 각도에 따라 조도가 주기적으로 변화합니다 (0 Lux ~ 10 Lux).";
+            evalEl.style.color = "#4f46e5";
+        } else {
+            lux = 10.0; // OLED constant
+            evalEl.innerText = "OLED 분석: 자발광 다이오드로 원형 편광 필터가 사용되어 편광판을 회절/회전시켜도 조도가 일정하게 유지됩니다 (10 Lux).";
+            evalEl.style.color = "#16a34a";
+        }
+
+        document.getElementById('disp-lux-res').innerText = lux.toFixed(1) + " Lux";
+        drawDispCanvas(type, deg, lux);
+    }
+
+    function drawDispCanvas(type, deg, lux) {
+        const cvs = document.getElementById('canvas-disp');
+        const ctx = cvs.getContext('2d');
+        const w = cvs.width, h = cvs.height;
+        ctx.clearRect(0, 0, w, h);
+
+        ctx.fillStyle = '#334155'; ctx.fillRect(40, 60, 180, 220);
+        ctx.fillStyle = (type === 'lcd') ? '#38bdf8' : '#a855f7';
+        ctx.fillRect(50, 70, 160, 200);
+        ctx.fillStyle = '#fff'; ctx.font = '14px sans-serif';
+        ctx.fillText((type === 'lcd') ? 'LCD 디스플레이' : 'OLED 디스플레이', 70, 170);
+
+        // Sensor Filter
+        let alpha = lux / 10.0;
+        ctx.fillStyle = `rgba(245, 158, 11, ${alpha})`;
+        ctx.fillRect(320, 120, 100, 100);
+        ctx.strokeStyle = '#fff'; ctx.strokeRect(320, 120, 100, 100);
+    }
+
+    let polIdx = 0;
+    function logPolData() {
+        polIdx++;
+        const deg = document.getElementById('pol-angle').value;
+        const rad = (deg * Math.PI) / 180;
+        const cosSq = Math.pow(Math.cos(rad), 2).toFixed(3);
+        const pct = (cosSq * 100).toFixed(1);
+
+        const tbody = document.querySelector('#pol-log-table tbody');
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${polIdx}</td><td>${deg}°</td><td>${cosSq}</td><td>${pct}%</td>`;
+        tbody.appendChild(tr);
+    }
+
+    window.onload = function() { updatePolSim(); updateDispSim(); };
+</script>
+
+</body>
+</html>
